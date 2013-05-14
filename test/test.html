@@ -1,0 +1,70 @@
+<!doctype html>
+<html>
+	<head>
+		<style type="text/css" >
+			#playarea {
+				width:500px;
+				height: 500px;
+				border: 1px solid #ccc;
+				margin: 5px;
+			}
+			#color{
+				width:100px;
+				height: 100px;
+				border: 1px solid #ccc;
+				margin: 5px;
+				color: blue;
+				font-size: 40px;
+			}
+			#pointer{
+				width: 15px;
+				height: 15px;
+				border-radius: 50%;
+				background-color: #999;
+				z-index: 100;
+				position: absolute;
+				top: 0px;
+				left: 0px;
+			}
+		</style>
+		<script>
+			function change(){
+				var colorPane = document.querySelector("#color");
+				if(colorPane.innerText == "Red"){
+					colorPane.innerText = "Blue";
+				}else{
+					colorPane.innerText = "Red";
+				}
+			}
+		</script>
+	</head>
+	<body>
+		<input type="button" value="record" onClick="record();"/>
+		<input type="button" value="play" onClick="play();">
+		<div id="playarea">
+			<input type="button" value="click me" onClick="change();"/>
+			<input type= "text" value="" onKeyDown="showInConsole(this.value);" />
+			<div id="color">Red</div>
+		</div>
+		<div id="pointer"></div>
+		<script type="text/javascript" src="../src/encapture.js" ></script>
+		<script>
+			var capture = new EnCapture(document.querySelector('#playarea'));
+			var capture2 = new EnCapture(document.body);
+			function record(){
+				capture.record();
+				console.log("recording...");
+			}
+			function play(){
+				capture.stop();
+				capture.rewind();
+				capture.play();
+				console.log("playing...");
+			}
+			function showInConsole(text){
+				console.log(text);
+			}
+			
+		</script>
+	</body>
+</html>

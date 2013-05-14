@@ -1,0 +1,29 @@
+{
+  "name": "encapturejs",
+  "version": "0.0.0",
+  "description": "A js library that records sequences of dom events for playback, ideal for simulationa and debug purposes.",
+  "main": "src/encapture.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/bomsy/encapturejs.git"
+  },
+  "keywords": [
+    "dom",
+    "capture"
+  ],
+  "devDependencies": {
+	"grunt" : "0.4.x",
+	"grunt-contrib-jshint": "~0.4.3",
+	"grunt-contrib-nodeunit": "~0.1.2"
+  },
+  "author": "hubert b manilla",
+  "license": "BSD",
+  "readmeFilename": "README.md",
+  "gitHead": "9d6112beb221346e8015e237d55cfa1dcf358e0e"
+}
