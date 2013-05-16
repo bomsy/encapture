@@ -8,5 +8,16 @@
 		"scripts": ["js/background.js"]
 	},
 	"devtools_page": "devtools.html",
-	"permissions": [ "tabs", "http://*/*", "https://*/*" ]
+	"permissions": [ 
+		"tabs", 
+		"http://*/*", 
+		"https://*/*" 
+	],
+	"content_scripts" : [
+		{
+			"matches": ["http://*/*", "https://*/*" ],
+			"css": ["css/content_script.css"],
+			"js": ["js/encapture.js", "js/content_script.js"]
+		}
+	]
 }
