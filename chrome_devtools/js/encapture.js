@@ -9,24 +9,14 @@ var EnCapture = (function(win, doc, undefined){
 		/*Key Events - KeyboardEvent - event.initKeyboardEvent*/
 		'keydown'	: 	false, 
 		'keyup'		: 	false,
-		'keypress'	: 	function(e){
-						var src = e.target;
-						src.value = src.value + String.fromCharCode(e.charCode);
-					},
+		'keypress'	: 	false,
 
 		/*Mouse Events - MouseEvents - event.initMouseEvent*/
-		'click'		: 	function(e){
-						var src = e.target;
-						src.style.border = "1px solid #f00";			
-					}, 
+		'click'		: 	false, 
 		'dblclick'	: 	false,
 		'mousedown'	: 	false,
 		'mouseup'	: 	false, 
-		'mousemove' : 	function(e){
-						var p = document.querySelector("#pointer");
-						p.style.top = 0 + e.pageY + "px";
-						p.style.left = 0 + e.pageX + "px";
-					},
+		'mousemove' : 	false,
 		'mouseout' 	: 	false, 
 		'mouseover' : 	false,
 		'mouseup' 	: 	false,
@@ -36,7 +26,7 @@ var EnCapture = (function(win, doc, undefined){
 		'dragleave'	: 	false,
 		'dragover'	: 	false,
 		'dragstart'	: 	false,
-		'mousewheel'	: 	false,
+		'mousewheel': 	false,
 		'scroll'	: 	false,
 
 		/*Mutation Events - MutationEvents - event.initMutationEvent */
@@ -46,6 +36,7 @@ var EnCapture = (function(win, doc, undefined){
 		/*Window Events - UIEvents - event.initUIEvent*/
 		'load' 		: 	false
 	};
+
 	var eventInit = {
 		MouseEvent: 'initMouseEvent',
 		MouseEvents: 'initMouseEvent',
@@ -110,8 +101,8 @@ var EnCapture = (function(win, doc, undefined){
 		}
 	};
 //------------------iterator-------------------------------------------------------
-	function Iterator(){
-		this.collection = [];
+	function Iterator(arr){
+		this.collection = arr || [];
 		this.currentIndex = 0;
 	};
 	Iterator.prototype.current = function(){
@@ -170,14 +161,17 @@ var EnCapture = (function(win, doc, undefined){
 		}
 	};
 
-	ec = function(elem, name, desc, options){
+	ec = function(args){
 		ec.instances++;
-		this.name = name || 'Capture ' + ec.instances + ' name';
-		this.description = desc || 'Capture ' + ec.instances + ' description';
-		this.elem = elem || doc;
-		this.events = new Iterator();
+		this.name = args.name || 'Capture ' + ec.instances + ' name';
+		this.description = args.description || 'Capture ' + ec.instances + ' description';
+		this.elem = args.root || doc;
+		this.events = new Iterator(args.capture);
 		this.playSpeed = 1;    //normal speed
 		this.mode = ec.mode.STOP;
+		this.url = args.url;
+		this.tab = args.tab;
+		this.playDelay = args.playDelay || 0;
 		this.captureListener = null;
 		console.log(this.name + ' is initialized.');
 	};
@@ -190,10 +184,27 @@ var EnCapture = (function(win, doc, undefined){
 		REWIND : 4
 	};
 
+	ec.attachEventRenderers = function(renderers){
+		if(renderers){
+			for(eventType in renderers){
+				if(typeof renderers[eventType] === "function" || renderers[eventType]){
+					_events[eventType] = renderers[eventType];
+					console.log("Attached " + eventType + " event renderer");
+				}
+			}
+		}
+	};
+
 	//------------control functions-----------
 	ec.prototype.play = function(){
+		var that = this;
 		this.mode = ec.mode.PLAY;
-		this.execute(this.events.current(), ec.mode.PLAY);
+		console.log('playing');
+		win.setTimeout(function(){
+			that.execute(that.events.current(), ec.mode.PLAY);
+		}, this.playDelay);
+		
+		
 	};
 	ec.prototype.stop = function(){
 		this.mode = ec.mode.STOP;
@@ -201,10 +212,12 @@ var EnCapture = (function(win, doc, undefined){
 		if(this.captureListener){
 			dom.removeListeners(this.elem, this.captureListener);
 		}
+		console.log('stopped');
 	};
 	ec.prototype.rewind = function(){
 		this.mode = ec.mode.REWIND;
 		this.events.first();
+		console.log('rewind');
 		//this.execute(this.events.current(), ec.mode.REWIND);
 	};
 	ec.prototype.pause = function(){
@@ -213,7 +226,13 @@ var EnCapture = (function(win, doc, undefined){
 	ec.prototype.record = function(){
 		var that = this;
 		var listener = function(e){
-			that.events.add({ event: e || window.event, context: window, timeout: timer.get() });
+			that.events.add({
+				id: 		that.events.size(), 
+				event: 		e || window.event, 
+				context: 	window, 
+				timeout: 	timer.get() 
+			});
+			console.log(that.events.size());
 			timer.stop();
 			timer.reset();
 			timer.start();
@@ -227,9 +246,9 @@ var EnCapture = (function(win, doc, undefined){
 	//----------------------------------------
 	ec.prototype.execute = function(evt, currentExecutionMode){
 		var that = this;
+		console.log("Capture Size: " +this.events.size() + " Current Execution Mode: " + currentExecutionMode + " Current Mode: " + this.mode)
 		if(currentExecutionMode === this.mode){
 			dom.executeEvent(evt, function(){
-				console.log(evt);
 				var nxtEvt = undefined;
 				if(currentExecutionMode === ec.mode.PLAY){
 					nxtEvt = that.events.next();
