@@ -1,6 +1,7 @@
 function Model(data, view){
 	this.data = data;
 	this.view = view;
+	this.initialize();
 };
 Model.prototype.initialize = function(){
 	var i, len;
@@ -20,15 +21,25 @@ Model.prototype.remove = function(index){
 };
 Model.prototype._render = function(data, index){
 	if(this.view && this.view.render){
-		this.view.render(data, index);
+		this.view.render(this.view.root, data, index);
 	}
 }
 
-function View(rootElement, initialize){
+function View(rootElement){
 	this.root = rootElement;
 	this.render = null; //overidde in instance 
-	this.init = initialize;
-	if(this.init){
-		this.init();
-	}
+	this.click = null;
+	this.hover = null;
+	this._addListeners();
+};
+
+View.prototype._onClick = function(e){
+	e = e || window.event;
+};
+View.prototype._onHover = function(e){
+	e = e || window.event;
+};
+View.prototype._addListeners = function(e){
+	this.root.addEventListener('click', this._onClick, false);
+	this.root.addEventListener('mouseover', this._onHover, false);
 };

@@ -17,14 +17,14 @@ body{
 	overflow: auto;
 }
 #ui-left-panel{
-	width: 15%;
+	width: 25%;
 	border-right: 1px solid #ccc;
 }
 #ui-center-panel{
-	width: 59.8815%;
+	width: 50%;
 }
 #ui-right-panel{
-	width: 25%;
+	width: 24%;
 	border-left: 1px solid #ccc;
 }
 .ui-right-panels{
@@ -55,4 +55,14 @@ body{
 	color: #fff;
 	padding: 3px 0 0 3px;
 
+}
+.rollover{
+	background-color: orange;
+	color: #fff;
+	font-weight: bold;
+}
+.highlight{
+	background-color: #0f0;
+	color: #fff;
+	font-weight: bold;
 }

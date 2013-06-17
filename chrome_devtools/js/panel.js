@@ -24,42 +24,33 @@ var getChildElement = function(node, index){
 // --------- PanelView object --------------
 
 var captureListView = new View(document.querySelector('#ui-left-panel'));
-captureListView.render = function(renderObject, index){
-	var captureList, 
-		header, 
-		contentUl,
-		listElement;
+captureListView.render = function(rootElement, renderObject, index){
+	var captureList,
+		listELement;
 
-	if(this.root.children){
-		contentUl = document.querySelector('ul-capture-list');
+	if(rootElement.children.length > 0){
+		captureList = rootElement.querySelector("#ui-capture-list");
+		console.log(captureList);
 		if(renderObject){
 			//render the object
 			listElement = document.createElement('li');
 			listElement.innerHTML = renderObject.name;
-			contentUl.appendChild(listElement);
+			captureList.appendChild(listElement);
 		} else {
 			//remove the already rendered object
-			var elm = getChildElement(contentUl);
-			contentUl.removeChild(elm);
+			var elm = captureList.children[index];
+			captureList.removeChild(elm);
 		}
 
 	} else {
 		//render the containing object
-		captureList = document.createElement('ul');
-		header = document.createElement('li');
-		contentUL = document.createElement('ul');
-		header.innerHTML = 'Captures';
-		contentUl.id = 'ui-capture-list';
-		header.appendChild(contentUL);
-
-		ul.appendChild(header);
-
+		rootElement.innerHTML = "<p>current captures</p><ul id='ui-capture-list'></ul>";
 		//call the the render object for the element
-		this.render(renderObject, index);
+		this.render(rootElement, renderObject, index);
 	}
 };
 
-var captureListModel = new Model([], captureListView);
+var captureListModel = new Model([{name: 'capture1'},{ name: 'capture2'},{ name:'capture3'}], captureListView);
 // ----- Connection -----------
 encaptureDevtoolsPanel.connection = {};
 encaptureDevtoolsPanel.connection.name = 'PANEL_PORT';
