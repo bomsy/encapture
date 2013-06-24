@@ -9,24 +9,14 @@ var EnCapture = (function(win, doc, undefined){
 		/*Key Events - KeyboardEvent - event.initKeyboardEvent*/
 		'keydown'	: 	false, 
 		'keyup'		: 	false,
-		'keypress'	: 	function(e){
-						var src = e.target;
-						src.value = src.value + String.fromCharCode(e.charCode);
-					},
+		'keypress'	: 	false,
 
 		/*Mouse Events - MouseEvents - event.initMouseEvent*/
-		'click'		: 	function(e){
-						var src = e.target;
-						src.style.border = "1px solid #f00";			
-					}, 
+		'click'		: 	false, 
 		'dblclick'	: 	false,
 		'mousedown'	: 	false,
 		'mouseup'	: 	false, 
-		'mousemove' : 	function(e){
-						var p = document.querySelector("#pointer");
-						p.style.top = 0 + e.pageY + "px";
-						p.style.left = 0 + e.pageX + "px";
-					},
+		'mousemove' : 	false,
 		'mouseout' 	: 	false, 
 		'mouseover' : 	false,
 		'mouseup' 	: 	false,
@@ -36,7 +26,7 @@ var EnCapture = (function(win, doc, undefined){
 		'dragleave'	: 	false,
 		'dragover'	: 	false,
 		'dragstart'	: 	false,
-		'mousewheel'	: 	false,
+		'mousewheel': 	false,
 		'scroll'	: 	false,
 
 		/*Mutation Events - MutationEvents - event.initMutationEvent */
@@ -46,41 +36,85 @@ var EnCapture = (function(win, doc, undefined){
 		/*Window Events - UIEvents - event.initUIEvent*/
 		'load' 		: 	false
 	};
-	var eventInit = {
-		MouseEvent: 'initMouseEvent',
-		MouseEvents: 'initMouseEvent',
-		KeyboardEvent: 'initKeyboardEvent',
-		KeyEvents: 'initKeyEvent',
-		UIEvent: 'initUIEvent',
-		UIEvents: 'initUIEvent'
-	};
+
+    var observer = 
+	/*var eventInit = {
+		MouseEvent: {
+            name: 'initMouseEvent',
+            init: function(createdEvent, e){
+                createdEvent[this.name](e.type, e.bubbles, e.cancelable, win, e.detail, e.screenX, e.screenY, e.clientX, e.clientY, e.altKey, e.shiftKey, e.metaKey, e.button, e.relatedTarget);
+                return createdEvent;
+            }
+        },
+		MouseEvents: {
+            name: 'initMouseEvent',
+            init: function(createdEvent, e){
+                 createdEvent[this.name](e.type, e.bubbles, e.cancelable, win, e.detail, e.screenX, e.screenY, e.clientX, e.clientY, e.altKey, e.shiftKey, e.metaKey, e.button, e.relatedTarget);
+                return createdEvent;
+            }
+        },
+		KeyboardEvent: {
+            name: 'initKeyboardEvent',
+            init: function(createdEvent, e){
+                console.log("initKeyBoardEvent");
+                console.log(e);
+                // The order for the arguments for the various browsers are different
+                //chrome
+               createdEvent[this.name](e.type, e.bubbles, e.cancelable, win, e.keyIdentifier, e.keyLocation, e.ctrlKey, e.shiftKey, e.altKey, e.metaKey,e.altGraphKey);
+                console.log(createdEvent);
+                return e;
+            }
+        },
+		KeyEvents: {
+            name: 'initKeyEvent',
+            init: function(createdEvent, e){
+                  createdEvent[this.name](e.type, e.bubbles, e.cancelable, win, e.detail, e.screenX, e.screenY, e.clientX, e.clientY, e.altKey, e.shiftKey, e.metaKey, e.keyCode, e.charCode);
+                return createdEvent;
+            }
+        },
+		UIEvent: {
+            name: 'initUIEvent',
+            init: function(createdEvent, e){
+                createdEvent[this.name](e.type, e.bubbles, e.cancelable, win, e.detail);
+                return createdEvent;
+            }
+        },
+		UIEvents: {
+            name: 'initUIEvent',
+            init: function(createdEvent, e){
+                 createdEvent[this.name](e.type, e.bubbles, e.cancelable, win, e.detail);
+                return createdEvent;
+            }
+        }
+	};*/
 
 	/*
 		Event for operations on events
 	*/
 	var dom = {
 		createEvent: function(e){
-			var evtType = e.constructor.name;
+			/*var evtType = e.constructor.name;
 			var evt = doc.createEvent(evtType);
 			if(eventInit[evtType]){
-				evt[eventInit[evtType]](e.type, e.bubbles, e.cancelable, win, e.detail, e.screenX, e.screenY, e.clientX, e.clientY, e.altKey, e.shiftKey, e.metaKey, e.button, e.relatedTarget);
+                evt = eventInit[evtType].init(evt, e);
 				return evt; 
 			}
-			return undefined;
+			return undefined;*/
 		},
-		dispatchEvent: function(elem, createdEvent){
+		dispatchEvent: function(elem, event){
 			var cancelled;
 			if(elem){
-				cancelled = !elem.dispatchEvent(createdEvent);
+				cancelled = !elem.dispatchEvent(event);
 				if(cancelled){
 					console.log('handler called prevent default');
 				}
 			}
 		},
 		simulateEvent: function(event){
-			var newEvent = this.createEvent(event);
-			this.dispatchEvent(event.target, newEvent);
-			return newEvent;
+			//var newEvent = this.createEvent(event);
+            var simEvent = event;
+			this.dispatchEvent(event.target, simEvent);
+			return simEvent;
 		},
 		addListeners: function(elem, listener){
 			var i, len;
@@ -103,15 +137,17 @@ var EnCapture = (function(win, doc, undefined){
 			if(evt){
 				win.setTimeout(function(){
 					var sim = dom.simulateEvent(evt.event);
-					_events[sim.type](sim);
+                    if(typeof _events[sim.type] === "function"){
+					   _events[sim.type](sim, evt);
+                    }
 					callback();
 				}, evt.timeout * (speed || 1) );
 			}
 		}
 	};
 //------------------iterator-------------------------------------------------------
-	function Iterator(){
-		this.collection = [];
+	function Iterator(arr){
+		this.collection = arr || [];
 		this.currentIndex = 0;
 	};
 	Iterator.prototype.current = function(){
@@ -145,8 +181,7 @@ var EnCapture = (function(win, doc, undefined){
 	Iterator.prototype.size = function(){
 		return this.collection.length;
 	}
-//----------------------timer-------------------------------} 
-
+//----------------------timer------------------------------- 
 	var timer = {
 		time: 0,
 		interval : null,
@@ -168,18 +203,41 @@ var EnCapture = (function(win, doc, undefined){
 		set: function(ms){
 			this.time = ms;
 		}
-	};
-
-	ec = function(elem, name, desc, options){
+	};  
+//------------------ emulator --------------------------------------------
+    function Emulator(root){
+        this.root = root;
+        this.pointer = null;
+    };
+    
+    Emulator.prototype.createPointer = function(){
+        if(this.pointer){
+        
+        }
+    };
+    Emulator.prototype.createHandler = function(eventListener, handler){
+    
+    };
+//-------------- encapture -----------------------------------------
+    
+	ec = function(args){
 		ec.instances++;
-		this.name = name || 'Capture ' + ec.instances + ' name';
-		this.description = desc || 'Capture ' + ec.instances + ' descripttion';
-		this.elem = elem || doc;
-		this.events = new Iterator();
+		this.name = args.name || 'Capture ' + ec.instances + ' name';
+		this.description = args.description || 'Capture ' + ec.instances + ' description'
+        
+		this.elem = args.root || doc;
+        this.cachedStateBeforeRecord = null;
+        
+		this.events = new Iterator(args.capture);
 		this.playSpeed = 1;    //normal speed
 		this.mode = ec.mode.STOP;
+		this.url = args.url;
+		this.tab = args.tab;
+		this.playDelay = args.playDelay || 0;
 		this.captureListener = null;
-		console.log(this.name);
+        this.emulator = args.emulator || null; //new Emulator(this.elem);
+        
+		console.log(this.name + ' is initialized.');
 	};
 	ec.instances = 0;
 	ec.mode = {
@@ -190,21 +248,44 @@ var EnCapture = (function(win, doc, undefined){
 		REWIND : 4
 	};
 
+	ec.attachEventEmulators = function(renderers){
+		if(renderers){
+			for(eventType in renderers){
+				if(typeof renderers[eventType] === "function" || renderers[eventType]){
+					_events[eventType] = renderers[eventType];
+					console.log("Attached " + eventType + " event renderer");
+				}
+			}
+		}
+	};
+
 	//------------control functions-----------
 	ec.prototype.play = function(){
+		var that = this;
+        //reset to the state before record
+        //this.elem.innerHTML = this.cachedStateBeforeRecord;
+        //start play
 		this.mode = ec.mode.PLAY;
-		this.execute(this.events.current(), ec.mode.PLAY);
+		console.log('playing');
+		win.setTimeout(function(){
+			that.execute(that.events.current(), ec.mode.PLAY);
+		}, this.playDelay);
+		
+		
 	};
 	ec.prototype.stop = function(){
 		this.mode = ec.mode.STOP;
 		this.events.last();
 		if(this.captureListener){
 			dom.removeListeners(this.elem, this.captureListener);
+			console.log('stopped');
 		}
+		
 	};
 	ec.prototype.rewind = function(){
 		this.mode = ec.mode.REWIND;
 		this.events.first();
+		console.log('rewind');
 		//this.execute(this.events.current(), ec.mode.REWIND);
 	};
 	ec.prototype.pause = function(){
@@ -213,11 +294,20 @@ var EnCapture = (function(win, doc, undefined){
 	ec.prototype.record = function(){
 		var that = this;
 		var listener = function(e){
-			that.events.add({ event: e || window.event, context: window, timeout: timer.get() });
+			that.events.add({
+				id: 		that.events.size(), 
+				event: 		e || window.event, 
+				context: 	window,
+                elem: e.target || e.srcElement,
+				timeout: 	timer.get() 
+			});
 			timer.stop();
 			timer.reset();
 			timer.start();
 		};
+        //cache the current state of the watched element before record
+        //this.cachedStateBeforeRecord = this.elem.innerHTML;
+        
 		this.mode = ec.mode.RECORD;
 		dom.addListeners(this.elem, listener);
 		timer.start();
@@ -229,7 +319,6 @@ var EnCapture = (function(win, doc, undefined){
 		var that = this;
 		if(currentExecutionMode === this.mode){
 			dom.executeEvent(evt, function(){
-				console.log(evt);
 				var nxtEvt = undefined;
 				if(currentExecutionMode === ec.mode.PLAY){
 					nxtEvt = that.events.next();
