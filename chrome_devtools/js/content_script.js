@@ -130,7 +130,10 @@ EnCapture.attachEventRenderers(
 		'keypress'	: 	function(e){
 			var src = e.target;
 			src.value = src.value + String.fromCharCode(e.charCode);
-		}
+		},
+		'scroll'	: 	function(e){
+
+		},
 	}
 );
 
