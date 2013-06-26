@@ -36,6 +36,60 @@ var EnCapture = (function(global, doc, undefined){
 		/*Window Events - UIEvents - event.initUIEvent*/
 		'load' 		: 	false
 	};
+<<<<<<< HEAD
+=======
+
+    var observer = 
+	/*var eventInit = {
+		MouseEvent: {
+            name: 'initMouseEvent',
+            init: function(createdEvent, e){
+                createdEvent[this.name](e.type, e.bubbles, e.cancelable, win, e.detail, e.screenX, e.screenY, e.clientX, e.clientY, e.altKey, e.shiftKey, e.metaKey, e.button, e.relatedTarget);
+                return createdEvent;
+            }
+        },
+		MouseEvents: {
+            name: 'initMouseEvent',
+            init: function(createdEvent, e){
+                 createdEvent[this.name](e.type, e.bubbles, e.cancelable, win, e.detail, e.screenX, e.screenY, e.clientX, e.clientY, e.altKey, e.shiftKey, e.metaKey, e.button, e.relatedTarget);
+                return createdEvent;
+            }
+        },
+		KeyboardEvent: {
+            name: 'initKeyboardEvent',
+            init: function(createdEvent, e){
+                console.log("initKeyBoardEvent");
+                console.log(e);
+                // The order for the arguments for the various browsers are different
+                //chrome
+               createdEvent[this.name](e.type, e.bubbles, e.cancelable, win, e.keyIdentifier, e.keyLocation, e.ctrlKey, e.shiftKey, e.altKey, e.metaKey,e.altGraphKey);
+                console.log(createdEvent);
+                return e;
+            }
+        },
+		KeyEvents: {
+            name: 'initKeyEvent',
+            init: function(createdEvent, e){
+                  createdEvent[this.name](e.type, e.bubbles, e.cancelable, win, e.detail, e.screenX, e.screenY, e.clientX, e.clientY, e.altKey, e.shiftKey, e.metaKey, e.keyCode, e.charCode);
+                return createdEvent;
+            }
+        },
+		UIEvent: {
+            name: 'initUIEvent',
+            init: function(createdEvent, e){
+                createdEvent[this.name](e.type, e.bubbles, e.cancelable, win, e.detail);
+                return createdEvent;
+            }
+        },
+		UIEvents: {
+            name: 'initUIEvent',
+            init: function(createdEvent, e){
+                 createdEvent[this.name](e.type, e.bubbles, e.cancelable, win, e.detail);
+                return createdEvent;
+            }
+        }
+	};*/
+>>>>>>> aae47c9ca62ebc874f37d2e448b531c8b6b97304
 
 	var observer
 	/*
@@ -182,7 +236,11 @@ var EnCapture = (function(global, doc, undefined){
 		this.description = args.description || 'Capture ' + ec.instances + ' description'
         
 		this.elem = args.root || doc;
+<<<<<<< HEAD
         this.cachedStateBeforeRecord = document.createDocumentFragment();
+=======
+        this.cachedStateBeforeRecord = null;
+>>>>>>> aae47c9ca62ebc874f37d2e448b531c8b6b97304
         
 		this.events = new Iterator(args.capture);
 		this.playSpeed = 1;    //normal speed
@@ -190,6 +248,7 @@ var EnCapture = (function(global, doc, undefined){
 		this.url = args.url;
 		this.tab = args.tab;
 		this.playDelay = args.playDelay || 0;
+<<<<<<< HEAD
 		
         this.emulator = args.emulator || null; //new Emulator(this.elem);
         
@@ -228,6 +287,12 @@ var EnCapture = (function(global, doc, undefined){
             }
 		});
 		this.captureHandler = this.startListener(ec.mode.RECORD);
+=======
+		this.captureListener = null;
+        this.emulator = args.emulator || null; //new Emulator(this.elem);
+        
+		console.log(this.name + ' is initialized.');
+>>>>>>> aae47c9ca62ebc874f37d2e448b531c8b6b97304
 	};
 	ec.instances = 0;
 	ec.mode = {
@@ -279,10 +344,22 @@ var EnCapture = (function(global, doc, undefined){
 		}
 	};
 
+	ec.attachEventEmulators = function(renderers){
+		if(renderers){
+			for(eventType in renderers){
+				if(typeof renderers[eventType] === "function" || renderers[eventType]){
+					_events[eventType] = renderers[eventType];
+					console.log("Attached " + eventType + " event renderer");
+				}
+			}
+		}
+	};
+
 	//------------control functions-----------
 	ec.prototype.play = function(){
 		var that = this;
         //reset to the state before record
+<<<<<<< HEAD
         this.elem = this.cachedStateBeforeRecord.firstChild();
         //start play
 		this.mode = ec.mode.PLAY;
@@ -290,15 +367,33 @@ var EnCapture = (function(global, doc, undefined){
 		global.setTimeout(function(){
 			that.execute(that.events.current(), ec.mode.PLAY);
 		}, this.playDelay);	
+=======
+        //this.elem.innerHTML = this.cachedStateBeforeRecord;
+        //start play
+		this.mode = ec.mode.PLAY;
+		console.log('playing');
+		win.setTimeout(function(){
+			that.execute(that.events.current(), ec.mode.PLAY);
+		}, this.playDelay);
+		
+		
+>>>>>>> aae47c9ca62ebc874f37d2e448b531c8b6b97304
 	};
 	ec.prototype.stop = function(){
 		this.mode = ec.mode.STOP;
 		this.events.last();
+<<<<<<< HEAD
 		//if(this.captureListener){
 			//dom.removeListeners(this.elem, this.captureListener);
 			//this.stopListener(this.captureHandler);
 			console.log('stopped');
 		//}
+=======
+		if(this.captureListener){
+			dom.removeListeners(this.elem, this.captureListener);
+			console.log('stopped');
+		}
+>>>>>>> aae47c9ca62ebc874f37d2e448b531c8b6b97304
 		
 	};
 	ec.prototype.rewind = function(){
@@ -312,10 +407,28 @@ var EnCapture = (function(global, doc, undefined){
 	};
 	ec.prototype.record = function(){
 		var that = this;
+<<<<<<< HEAD
 	
         //cache the current state of the watched element before record
         this.cachedStateBeforeRecord.appendChild(this.elem);
         timer.start();
+=======
+		var listener = function(e){
+			that.events.add({
+				id: 		that.events.size(), 
+				event: 		e || window.event, 
+				context: 	window,
+                elem: e.target || e.srcElement,
+				timeout: 	timer.get() 
+			});
+			timer.stop();
+			timer.reset();
+			timer.start();
+		};
+        //cache the current state of the watched element before record
+        //this.cachedStateBeforeRecord = this.elem.innerHTML;
+        
+>>>>>>> aae47c9ca62ebc874f37d2e448b531c8b6b97304
 		this.mode = ec.mode.RECORD;
 		//dom.addListeners(this.elem, listener);
 		//this.captureHandler = this.startListener(ec.mode.RECORD);

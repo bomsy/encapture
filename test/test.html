@@ -105,7 +105,45 @@ cmd.executeReader(function(err, rows) {
 			}
 
 			//Attach render functions that simulate on capture playback
+<<<<<<< HEAD
 			
+=======
+			EnCapture.attachEventEmulators(
+				{
+					'mousemove': function(e){
+						var p = document.querySelector("#pointer");
+						p.style.top = 0 + e.pageY + "px";
+						p.style.left = 0 + e.pageX + "px";
+                        //console.log(e);
+					},
+					'click': function(e){
+						var src = e.target;
+                        src.focus();
+                        //console.log(e);
+					},
+                    'keydown': function(e){
+                        var elem = e.target;             
+                        if(e.keyCode === 8){
+                            elem.value = elem.value.substring(0 , elem.value.length - 1);
+                        }
+                    },
+                    'keyup': function(e){
+                        //console.log("keyup");
+                        //console.log(e);
+                        var elem = e.target;
+                         
+                    },
+					'keypress': function(e){
+						var elem = e.target;
+                        elem.value = elem.value + String.fromCharCode(e.keyCode);
+
+					},
+					'scroll': function(){
+                    
+                    }
+				}
+			);
+>>>>>>> aae47c9ca62ebc874f37d2e448b531c8b6b97304
 			
 		</script>
 	</body>
