@@ -36,66 +36,32 @@ var EnCapture = (function(global, doc, undefined){
 		/*Window Events - UIEvents - event.initUIEvent*/
 		'load' 		: 	false
 	};
-<<<<<<< HEAD
-=======
 
-    var observer = 
-	/*var eventInit = {
-		MouseEvent: {
-            name: 'initMouseEvent',
-            init: function(createdEvent, e){
-                createdEvent[this.name](e.type, e.bubbles, e.cancelable, win, e.detail, e.screenX, e.screenY, e.clientX, e.clientY, e.altKey, e.shiftKey, e.metaKey, e.button, e.relatedTarget);
-                return createdEvent;
-            }
-        },
-		MouseEvents: {
-            name: 'initMouseEvent',
-            init: function(createdEvent, e){
-                 createdEvent[this.name](e.type, e.bubbles, e.cancelable, win, e.detail, e.screenX, e.screenY, e.clientX, e.clientY, e.altKey, e.shiftKey, e.metaKey, e.button, e.relatedTarget);
-                return createdEvent;
-            }
-        },
-		KeyboardEvent: {
-            name: 'initKeyboardEvent',
-            init: function(createdEvent, e){
-                console.log("initKeyBoardEvent");
-                console.log(e);
-                // The order for the arguments for the various browsers are different
-                //chrome
-               createdEvent[this.name](e.type, e.bubbles, e.cancelable, win, e.keyIdentifier, e.keyLocation, e.ctrlKey, e.shiftKey, e.altKey, e.metaKey,e.altGraphKey);
-                console.log(createdEvent);
-                return e;
-            }
-        },
-		KeyEvents: {
-            name: 'initKeyEvent',
-            init: function(createdEvent, e){
-                  createdEvent[this.name](e.type, e.bubbles, e.cancelable, win, e.detail, e.screenX, e.screenY, e.clientX, e.clientY, e.altKey, e.shiftKey, e.metaKey, e.keyCode, e.charCode);
-                return createdEvent;
-            }
-        },
-		UIEvent: {
-            name: 'initUIEvent',
-            init: function(createdEvent, e){
-                createdEvent[this.name](e.type, e.bubbles, e.cancelable, win, e.detail);
-                return createdEvent;
-            }
-        },
-		UIEvents: {
-            name: 'initUIEvent',
-            init: function(createdEvent, e){
-                 createdEvent[this.name](e.type, e.bubbles, e.cancelable, win, e.detail);
-                return createdEvent;
-            }
-        }
-	};*/
->>>>>>> aae47c9ca62ebc874f37d2e448b531c8b6b97304
-
-	var observer
+	var observer;
 	/*
 		Event for operations on events
 	*/
 	var dom = {
+		/* find twin Node */
+		findTwinNode: function(node, root){
+			//recursive loop through the node hierachy
+			var twin = null;
+			root = root || doc.body || doc.documentElement;
+			walk(root);
+			function walk(currentNode){
+				var found;
+				do {
+					if(node.isEqualNode(currentNode)){
+						twin = currentNode;
+						break;
+					}
+					if(currentNode.hasChildNodes()){
+						walk(currentNode.firstChild);
+					}
+				} while (currentNode = currentNode.nextSibling)
+			}
+			return twin;
+		},
 		createEvent: function(e){
 			/*var evtType = e.constructor.name;
 			var evt = doc.createEvent(evtType);
@@ -114,10 +80,12 @@ var EnCapture = (function(global, doc, undefined){
 				}
 			}
 		},
-		simulateEvent: function(event){
+		simulateEvent: function(event, target){
 			//var newEvent = this.createEvent(event);
             var simEvent = event;
-			this.dispatchEvent(event.target, simEvent);
+            event.target = target;
+            event.srcElement = target;
+			this.dispatchEvent(target, simEvent);
 			return simEvent;
 		},
 		addListeners: function(elem, listener){
@@ -137,58 +105,64 @@ var EnCapture = (function(global, doc, undefined){
 				}
 			}
 		},
-		executeEvent: function(evt, callback, speed){
-			if(evt){
+		executeEvent: function(evtObject, callback, speed, capture){
+			var acutalElement = null;
+			if(evtObject){
 				global.setTimeout(function(){
-					var sim = dom.simulateEvent(evt.event);
+					actualElement = dom.findTwinNode(evtObject.elem, capture.elem);
+					if(actualElement){
+						//console.log("actual element");
+						//console.log(actualElement);
+					}
+					var sim = dom.simulateEvent(evtObject.event, actualElement);
                     if(typeof _events[sim.type] === "function"){
-					   _events[sim.type](sim, evt);
+					   _events[sim.type](sim, evtObject);
                     }
 					callback();
-				}, evt.timeout * (speed || 1) );
+				}, evtObject.timeout * (speed || 1) );
 			}
 		}
 	};
 //------------------iterator-------------------------------------------------------
-	function Iterator(arr){
+	function Collection(arr){
 		this.collection = arr || [];
 		this.currentIndex = 0;
 	};
-	Iterator.prototype.current = function(){
+	Collection.prototype.current = function(){
 		return this.collection[this.currentIndex];
 	};
-	Iterator.prototype.moveTo = function(index){
+	Collection.prototype.moveTo = function(index){
 		if(index >= 0 && index < this.collection.length){
 			this.currentIndex = index;
 		}
 	};
 
-	Iterator.prototype.next = function(){
+	Collection.prototype.next = function(){
 		this.currentIndex++;
 		return this.collection[this.currentIndex];
 	};
-	Iterator.prototype.previous = function(){
+	Collection.prototype.previous = function(){
 		this.currentIndex--;
 		return this.collection[this.currentIndex];
 	};
-	Iterator.prototype.first = function(){
+	Collection.prototype.first = function(){
 		this.currentIndex = 0;
 		return this.collection[this.currentIndex];
 	};
-	Iterator.prototype.last = function(){
+	Collection.prototype.last = function(){
 		this.currentIndex = this.collection.length - 1;
 		return this.collection[this.currentIndex];
 	};
-	Iterator.prototype.add = function(o){
+	Collection.prototype.add = function(o){
 		this.collection.push(o);
 	};
-	Iterator.prototype.remove = function(i){
+	Collection.prototype.remove = function(i){
 		this.collection.slice(i);	
 	};
-	Iterator.prototype.get = function(){
+	Collection.prototype.get = function(){
 		return this.collection;
 	};
-	Iterator.prototype.size = function(){
+	Collection.prototype.size = function(){
 		return this.collection.length;
 	}
 //----------------------timer------------------------------- 
@@ -236,19 +210,14 @@ var EnCapture = (function(global, doc, undefined){
 		this.description = args.description || 'Capture ' + ec.instances + ' description'
         
 		this.elem = args.root || doc;
-<<<<<<< HEAD
-        this.cachedStateBeforeRecord = document.createDocumentFragment();
-=======
         this.cachedStateBeforeRecord = null;
->>>>>>> aae47c9ca62ebc874f37d2e448b531c8b6b97304
         
-		this.events = new Iterator(args.capture);
+		this.events = new Collection(args.capture);
 		this.playSpeed = 1;    //normal speed
 		this.mode = ec.mode.STOP;
 		this.url = args.url;
 		this.tab = args.tab;
 		this.playDelay = args.playDelay || 0;
-<<<<<<< HEAD
 		
         this.emulator = args.emulator || null; //new Emulator(this.elem);
         
@@ -261,38 +230,35 @@ var EnCapture = (function(global, doc, undefined){
                 //console.log(e);
 			},
 			'click': function(e){
-				var src = e.target;
+				console.log(e);
+				var src = e.target || o.elem;
                 src.focus();
-                //console.log(e);
+                
 			},
             'keydown': function(e){
-                var elem = e.target;             
+            	console.log(e)
+                var elem = e.target ;             
                 if(e.keyCode === 8){
                     elem.value = elem.value.substring(0 , elem.value.length - 1);
                 }
             },
             'keyup': function(e){
+            	 console.log(e);
                 //console.log("keyup");
-                //console.log(e);
+               
                 var elem = e.target;
                  
             },
 			'keypress': function(e){
-				var elem = e.target;
+				var elem = e.target ;
                 elem.value = elem.value + String.fromCharCode(e.keyCode);
 
 			},
-			'scroll': function(){
+			'scroll': function(e){
             
             }
 		});
 		this.captureHandler = this.startListener(ec.mode.RECORD);
-=======
-		this.captureListener = null;
-        this.emulator = args.emulator || null; //new Emulator(this.elem);
-        
-		console.log(this.name + ' is initialized.');
->>>>>>> aae47c9ca62ebc874f37d2e448b531c8b6b97304
 	};
 	ec.instances = 0;
 	ec.mode = {
@@ -344,56 +310,26 @@ var EnCapture = (function(global, doc, undefined){
 		}
 	};
 
-	ec.attachEventEmulators = function(renderers){
-		if(renderers){
-			for(eventType in renderers){
-				if(typeof renderers[eventType] === "function" || renderers[eventType]){
-					_events[eventType] = renderers[eventType];
-					console.log("Attached " + eventType + " event renderer");
-				}
-			}
-		}
-	};
-
 	//------------control functions-----------
 	ec.prototype.play = function(){
 		var that = this;
         //reset to the state before record
-<<<<<<< HEAD
-        this.elem = this.cachedStateBeforeRecord.firstChild();
+        this.elem.innerHTML = this.cachedStateBeforeRecord;
         //start play
 		this.mode = ec.mode.PLAY;
 		console.log('playing');
 		global.setTimeout(function(){
 			that.execute(that.events.current(), ec.mode.PLAY);
 		}, this.playDelay);	
-=======
-        //this.elem.innerHTML = this.cachedStateBeforeRecord;
-        //start play
-		this.mode = ec.mode.PLAY;
-		console.log('playing');
-		win.setTimeout(function(){
-			that.execute(that.events.current(), ec.mode.PLAY);
-		}, this.playDelay);
-		
-		
->>>>>>> aae47c9ca62ebc874f37d2e448b531c8b6b97304
 	};
 	ec.prototype.stop = function(){
 		this.mode = ec.mode.STOP;
 		this.events.last();
-<<<<<<< HEAD
 		//if(this.captureListener){
 			//dom.removeListeners(this.elem, this.captureListener);
 			//this.stopListener(this.captureHandler);
 			console.log('stopped');
 		//}
-=======
-		if(this.captureListener){
-			dom.removeListeners(this.elem, this.captureListener);
-			console.log('stopped');
-		}
->>>>>>> aae47c9ca62ebc874f37d2e448b531c8b6b97304
 		
 	};
 	ec.prototype.rewind = function(){
@@ -407,28 +343,10 @@ var EnCapture = (function(global, doc, undefined){
 	};
 	ec.prototype.record = function(){
 		var that = this;
-<<<<<<< HEAD
 	
         //cache the current state of the watched element before record
-        this.cachedStateBeforeRecord.appendChild(this.elem);
+        this.cachedStateBeforeRecord = this.elem.innerHTML;
         timer.start();
-=======
-		var listener = function(e){
-			that.events.add({
-				id: 		that.events.size(), 
-				event: 		e || window.event, 
-				context: 	window,
-                elem: e.target || e.srcElement,
-				timeout: 	timer.get() 
-			});
-			timer.stop();
-			timer.reset();
-			timer.start();
-		};
-        //cache the current state of the watched element before record
-        //this.cachedStateBeforeRecord = this.elem.innerHTML;
-        
->>>>>>> aae47c9ca62ebc874f37d2e448b531c8b6b97304
 		this.mode = ec.mode.RECORD;
 		//dom.addListeners(this.elem, listener);
 		//this.captureHandler = this.startListener(ec.mode.RECORD);
@@ -447,7 +365,7 @@ var EnCapture = (function(global, doc, undefined){
 					nxtEvt = that.events.previous();
 				}
 				that.execute(nxtEvt, currentExecutionMode);
-			});
+			}, undefined, this);
 		}
 	};
 
