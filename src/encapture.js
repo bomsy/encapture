@@ -229,6 +229,12 @@ var EnCapture = (function(global, doc, undefined){
 				p.style.left = 0 + e.pageX + "px";
                 //console.log(e);
 			},
+			'mouseup': function(e){
+
+			},
+			'mousedown': function(e){
+
+			},
 			'click': function(e){
 				console.log(e);
 				var src = e.target || o.elem;

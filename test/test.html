@@ -3,7 +3,7 @@
 	<head>
 		<style type="text/css" >
 			#playarea {
-				width:500px;
+				width:1000px;
 				height: 500px;
 				border: 1px solid #ccc;
 				margin: 5px;
@@ -16,6 +16,11 @@
 				margin: 5px;
 				color: blue;
 				font-size: 40px;
+				z-index: 10;
+				top:0px;
+				left:0px;
+				position:absolute;
+				background-color:#0f0;
 			}
 			#pointer{
 				width: 20px;
@@ -37,6 +42,7 @@
 					colorPane.innerText = "Red";
 				}
 			}
+			
 		</script>
 	</head>
 	<body>
@@ -105,7 +111,46 @@ cmd.executeReader(function(err, rows) {
 			}
 
 			//Attach render functions that simulate on capture playback
-			
+			var pxToNumber = function(px){
+			    var val = px.replace("px", "");
+			    return Number(val);
+			}
+			function loadEvents(document){
+				var focusX = 0;
+				var focusY = 0;
+				var startX = 0;
+				var startY = 0;
+				var focus = false;
+
+				function move(e){
+					e = e || window.event;
+					if(focus){
+						focus.style.left = (startX + (e.clientX - focusX)) + "px";
+                   		focus.style.top = (startY + (e.clientY - focusY)) + "px";
+					}
+				}
+				function up(e){
+					e = e || window.event;
+					focus = null;
+		            focusX = 0;
+		            focusY = 0;
+				}
+				function down(e){
+					e = e || window.event;
+					if(e.target.id === "color"){
+
+						focus = e.target;
+						focusX = e.clientX;
+			            focusY = e.clientY;
+			            startX = pxToNumber(focus.style.left);
+			            startY = pxToNumber(focus.style.top);
+					}
+				}
+				document.body.addEventListener("mousedown", down, false); 
+			    document.body.addEventListener("mouseup", up, false);
+			    document.body.addEventListener("mousemove", move, false);
+			}
+			loadEvents(document);
 			
 		</script>
 	</body>
