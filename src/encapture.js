@@ -66,7 +66,7 @@ var EnCapture = (function(global, doc, undefined){
 
 			}
 			if(mutation.removedNodes !== null{
-				
+				console.log("");
 			}
 		}
 	};
