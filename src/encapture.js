@@ -1,6 +1,6 @@
 var EnCapture = (function(global, doc, undefined){
-	var ec = {},
-		speedDifference = 100; //ms
+	var ec = {};
+	var speedDifference = 100; //ms
 	var _events = {
 		/*Form Events - HTMLEvents - event.initEvent*/
 		'focus'		: 	false, 
@@ -36,8 +36,42 @@ var EnCapture = (function(global, doc, undefined){
 		/*Window Events - UIEvents - event.initUIEvent*/
 		'load' 		: 	false
 	};
+	/* Mutation Observers */
+	var _mutations = null;
 
-	var observer;
+	var _MutationObserver = global.MutationObserver || global.WebkitMutationObserver || global.MozMutationObserver;
+
+	var _observerConfig = {
+		attributes: true,
+		childList: true,
+		characterData: true,
+		subtree: true,
+		attributeOldValue: true,
+		characterDataOldValue: true
+	};
+
+	var _observer = new _MutationObserver( function(mutations){
+		_mutations = mutations;
+	});
+
+	var _revertMutation = function(mutation){
+		if(mutation.type === "CharacterData"){
+
+		}
+		if(mutation.type === "attributes"){
+			mutation.target[mutation.attributeName] = mutation.oldValue;
+		}
+		if(mutation.type === "childList"){
+			if(mutation.addedNodes !== null){
+
+			}
+			if(mutation.removedNodes !== null{
+				
+			}
+		}
+	};
+
+
 	/*
 		Event for operations on events
 	*/
@@ -322,6 +356,8 @@ var EnCapture = (function(global, doc, undefined){
         //reset to the state before record
         this.elem.innerHTML = this.cachedStateBeforeRecord;
         //start play
+        //stop observing DOM mutations
+        _observer.disconnect();
 		this.mode = ec.mode.PLAY;
 		console.log('playing');
 		global.setTimeout(function(){
@@ -349,7 +385,8 @@ var EnCapture = (function(global, doc, undefined){
 	};
 	ec.prototype.record = function(){
 		var that = this;
-	
+		//start observing DOM mutations
+		_observer.observe(this.elem, _observerConfig);
         //cache the current state of the watched element before record
         this.cachedStateBeforeRecord = this.elem.innerHTML;
         timer.start();
