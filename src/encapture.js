@@ -37,7 +37,7 @@ var EnCapture = (function(global, doc, undefined){
 		'load' 		: 	false
 	};
 	/* Mutation Observers */
-	var _mutations = null;
+	var _mutations = [];
 
 	var _MutationObserver = global.MutationObserver || global.WebkitMutationObserver || global.MozMutationObserver;
 
@@ -51,26 +51,39 @@ var EnCapture = (function(global, doc, undefined){
 	};
 
 	var _observer = new _MutationObserver( function(mutations){
-		_mutations = mutations;
+		mutations.forEach(function(mutation){
+			_mutations.push(mutation);
+		});
+		console.log(_mutations);
 	});
-
-	var _revertMutation = function(mutation){
+	var parseStringToPropertyObject = function(str){
+		var props = str.split(";");
+		var o = {};
+		props.pop();
+		props.forEach(function(prop){
+			o[prop.match(/\w+:/i)[0].replace(":","")] = prop.match(/:\s*\w+/i)[0].replace(":","").replace(" ","");
+		});
+		return o;
+	}
+	var _revert = function(mutation){
 		if(mutation.type === "CharacterData"){
 
 		}
 		if(mutation.type === "attributes"){
-			mutation.target[mutation.attributeName] = mutation.oldValue;
+			var oldValue = parseStringToPropertyObject(mutation.oldValue);
+			for(prop in oldValue){
+				mutation.target[mutation.attributeName][prop] = oldValue[prop];
+			}
 		}
 		if(mutation.type === "childList"){
 			if(mutation.addedNodes !== null){
 
 			}
-			if(mutation.removedNodes !== null{
+			if(mutation.removedNodes !== null){
 				console.log("");
 			}
 		}
 	};
-
 
 	/*
 		Event for operations on events
@@ -354,7 +367,7 @@ var EnCapture = (function(global, doc, undefined){
 	ec.prototype.play = function(){
 		var that = this;
         //reset to the state before record
-        this.elem.innerHTML = this.cachedStateBeforeRecord;
+
         //start play
         //stop observing DOM mutations
         _observer.disconnect();
@@ -377,7 +390,11 @@ var EnCapture = (function(global, doc, undefined){
 	ec.prototype.rewind = function(){
 		this.mode = ec.mode.REWIND;
 		this.events.first();
+
 		console.log('rewind');
+		for(var i = _mutations.length - 1; i > 0 ; i--){
+			_revert(_mutations[i]);	
+		}
 		//this.execute(this.events.current(), ec.mode.REWIND);
 	};
 	ec.prototype.pause = function(){
@@ -385,7 +402,8 @@ var EnCapture = (function(global, doc, undefined){
 	};
 	ec.prototype.record = function(){
 		var that = this;
-		//start observing DOM mutations
+		//start observing DOM mutation
+		_mutations = [];
 		_observer.observe(this.elem, _observerConfig);
         //cache the current state of the watched element before record
         this.cachedStateBeforeRecord = this.elem.innerHTML;
