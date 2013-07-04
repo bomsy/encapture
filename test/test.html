@@ -14,7 +14,7 @@
 				height: 100px;
 				border: 1px solid #ccc;
 				margin: 5px;
-				color: blue;
+				color: #fff;
 				font-size: 40px;
 				z-index: 10;
 				top:0px;
@@ -38,8 +38,10 @@
 				var colorPane = document.querySelector("#color");
 				if(colorPane.innerText == "Red"){
 					colorPane.innerText = "Blue";
+					colorPane.style.backgroundColor = "#00f";
 				}else{
 					colorPane.innerText = "Red";
+					colorPane.style.backgroundColor = "#f00";
 				}
 			}
 			

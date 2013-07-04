@@ -58,21 +58,31 @@ var EnCapture = (function(global, doc, undefined){
 	});
 	var parseStringToPropertyObject = function(str){
 		var props = str.split(";");
-		var o = {};
-		props.pop();
+		var o = [];
 		props.forEach(function(prop){
-			o[prop.match(/\w+:/i)[0].replace(":","")] = prop.match(/:\s*\w+/i)[0].replace(":","").replace(" ","");
+			if(prop.length > 0){
+				if(prop.match(/\w+:/i) !== null){
+					o[prop.match(/\w+:/i)[0].replace(":","")] = prop.match(/:\s*\w+/i)[0].replace(":","").replace(" ","");
+				}else{;
+					return prop;
+				}
+			}
 		});
 		return o;
 	}
 	var _revert = function(mutation){
 		if(mutation.type === "CharacterData"){
-
+			mutation.target.textContent = mutation.oldValue;
 		}
 		if(mutation.type === "attributes"){
 			var oldValue = parseStringToPropertyObject(mutation.oldValue);
-			for(prop in oldValue){
-				mutation.target[mutation.attributeName][prop] = oldValue[prop];
+			console.log(mutation.oldValue);
+			if(typeof oldValue === "object"){
+				for(prop in oldValue){
+					mutation.target[mutation.attributeName][prop] = oldValue[prop];
+				}
+			}else{
+				mutation.target[mutation.attributeName] = oldValue;
 			}
 		}
 		if(mutation.type === "childList"){
