@@ -4,7 +4,7 @@
 		<style type="text/css" >
 			#playarea {
 				width:1000px;
-				height: 500px;
+				height: 150px;
 				border: 1px solid #ccc;
 				margin: 5px;
                 overflow: auto;
@@ -38,10 +38,12 @@
 				var colorPane = document.querySelector("#color");
 				if(colorPane.innerText == "Red"){
 					colorPane.innerText = "Blue";
-					colorPane.style.backgroundColor = "#00f";
+					colorPane.style.display = "none";
+					//colorPane.style.backgroundColor = "#00f";
 				}else{
 					colorPane.innerText = "Red";
-					colorPane.style.backgroundColor = "#f00";
+					colorPane.width = "100px";
+					//colorPane.style.backgroundColor = "#f00";
 				}
 			}
 			
@@ -91,6 +93,7 @@ cmd.executeReader(function(err, rows) {
             <input id="but2" type="button" value="click me" onClick="change();"/>
 		</div>
 		<img id="pointer" src="arrow.png" />
+		<script type="text/javascript" src="../src/mutation_summary.js" ></script>
 		<script type="text/javascript" src="../src/encapture.js" ></script>
 		<script>
 			var capture = new EnCapture({

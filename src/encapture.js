@@ -1,40 +1,253 @@
 var EnCapture = (function(global, doc, undefined){
 	var ec = {};
 	var speedDifference = 100; //ms
+
+	/* Visual objects */
+	var _simulatorPointer = document.querySelector("#pointer");
 	var _events = {
+		//actions occur during play back state
 		/*Form Events - HTMLEvents - event.initEvent*/
-		'focus'		: 	false, 
-		'blur'		: 	false,
+		'focus'		: 	{
+			action: function(e){
+				console.log(e);
+				var src = e.target || o.elem;
+                src.focus();
+			},
+			getCustomProperties: function(e){
+				//gets specific properties for the event
+				return null;
+			},
+			active: false
+		}, 
+		'blur'		: 	{
+			action: function(e){
+
+			},
+			getCustomProperties: function(e){
+				//gets specific properties for the event
+				return null;
+			},
+			active: false
+		},
 
 		/*Key Events - KeyboardEvent - event.initKeyboardEvent*/
-		'keydown'	: 	false, 
-		'keyup'		: 	false,
-		'keypress'	: 	false,
+		'keydown'	: 	{
+			action : function(e){
+                var elem = e.target ;             
+                if(e.keyCode === 8){ //backspace
+                    elem.value = elem.value.substring(0 , elem.value.length - 1);
+                }
+			},
+			getCustomProperties: function(e){
+				//gets specific properties for the event
+				return null;
+			},
+			active: false
+		}, 
+		'keyup'		: 	{
+			action: function(e){
+				 console.log(e);
+                //console.log("keyup");
+               
+                var elem = e.target;
+			},
+			getCustomProperties: function(e){
+				//gets specific properties for the event
+				return null;
+			},
+			active: false
+		},
+		'keypress'	: 	{
+			action : function(e){
+				var elem = e.target ;
+                elem.value = elem.value + String.fromCharCode(e.keyCode);
+			},
+			getCustomProperties: function(e){
+				//gets specific properties for the event
+				return null;
+			},
+			active: false
+		},
 
 		/*Mouse Events - MouseEvents - event.initMouseEvent*/
-		'click'		: 	false, 
-		'dblclick'	: 	false,
-		'mousedown'	: 	false,
-		'mouseup'	: 	false, 
-		'mousemove' : 	false,
-		'mouseout' 	: 	false, 
-		'mouseover' : 	false,
-		'mouseup' 	: 	false,
-		'drag'		: 	false,
-		'dragend'	: 	false,
-		'dragenter'	: 	false,
-		'dragleave'	: 	false,
-		'dragover'	: 	false,
-		'dragstart'	: 	false,
-		'mousewheel': 	false,
-		'scroll'	: 	false,
+		'click'		: 	{
+			action: function(e){
+                e.target.focus();
+			},
+			getCustomProperties: function(e){
+				//gets specific properties for the event
+				return null;
+			},
+			active: false
+		}, 
+		'dblclick'	: 	{
+			action: function(e){
+
+			},
+			getCustomProperties: function(e){
+				//gets specific properties for the event
+				return null;
+			},
+			active: false
+		},
+		'mousedown'	: 	{
+			action: function(e){
+
+			},
+			getCustomProperties: function(e){
+				//gets specific properties for the event
+				return null;
+			},
+			active: false
+		},
+		'mouseup'	: 	{
+			action: function(e){
+
+			},
+			getCustomProperties: function(e){
+				//gets specific properties for the event
+				return null;
+			},
+			active: false
+		}, 
+		'mousemove' : 	{
+			action: function(e){
+				e.target.focus();
+				_simulatorPointer.style.top = 0 + e.pageY + "px";
+				_simulatorPointer.style.left = 0 + e.pageX + "px";
+			},
+			getCustomProperties: function(e){
+				//gets specific properties for the event
+				return null;
+			},
+			active: false
+		},
+		'mouseout' 	: 	{
+			action: function(e){
+
+			},
+			getCustomProperties: function(e){
+				//gets specific properties for the event
+				return null;
+			},
+			active: false
+		}, 
+		'mouseover' : 	{
+			action: function(e){
+
+			},
+			getCustomProperties: function(e){
+				//gets specific properties for the event
+				return null;
+			},
+			active: false
+		},
+		'mouseup' 	: 	{
+			action: function(e){
+
+			},
+			getCustomProperties: function(e){
+				//gets specific properties for the event
+				return null;
+			},
+			active: false
+		},
+		'drag'		: 	{
+			action: function(e){
+
+			},
+			getCustomProperties: function(e){
+				//gets specific properties for the event
+				return null;
+			},
+			active: false
+		},
+		'dragend'	: 	{
+			action: function(e){
+
+			},
+			getCustomProperties: function(e){
+				//gets specific properties for the event
+				return null;
+			},
+			active: false
+		},
+		'dragenter'	: 	{
+			action: function(e){
+
+			},
+			getCustomProperties: function(e){
+				//gets specific properties for the event
+				return null;
+			},
+			active: false
+		},
+		'dragleave'	: 	{
+			action: function(e){
+
+			},
+			getCustomProperties: function(e){
+				//gets specific properties for the event
+				return null;
+			},
+			active: false
+		},
+		'dragover'	: 	{
+			action: function(e){
+
+			},
+			getCustomProperties: function(e){
+				//gets specific properties for the event
+				return null;
+			},
+			active: false
+		},
+		'dragstart'	: 	{
+			action: function(e){
+
+			},
+			getCustomProperties: function(e){
+				//gets specific properties for the event
+				return null;
+			},
+			active: false
+		},
+		'mousewheel': 	{
+			action: function(e){
+
+			},
+			getCustomProperties: function(e){
+				//gets specific properties for the event
+				return null;
+			},
+			active: false
+		},
+		'scroll'	: 	{
+			action: function(e, o){
+				e.target.scrollTop = o.custom.scrollTop;
+				e.target.scrollLeft = o.custom.scrollLeft;
+			},
+			getCustomProperties: function(e){
+				//gets specific properties for the event
+				return {
+					scrollTop: e.target.scrollTop,
+					scrollLeft: e.target.scrollLeft
+				}
+			},
+			active: false
+		},
 
 		/*Mutation Events - MutationEvents - event.initMutationEvent */
 
 		/* SVG Events - SVGEvents/SVGZoomEvents - event.initEvent/event.initUIEvent */
 
 		/*Window Events - UIEvents - event.initUIEvent*/
-		'load' 		: 	false
+		'load' 		: 	{
+			action: function(e){
+
+			},
+			active: false
+		}
 	};
 	/* Mutation Observers */
 	var _mutations = [];
@@ -71,7 +284,8 @@ var EnCapture = (function(global, doc, undefined){
 		return o;
 	}
 	var _revert = function(mutation){
-		if(mutation.type === "CharacterData"){
+		console.log(mutation);
+		if(mutation.type === "characterData"){
 			mutation.target.textContent = mutation.oldValue;
 		}
 		if(mutation.type === "attributes"){
@@ -82,18 +296,30 @@ var EnCapture = (function(global, doc, undefined){
 					mutation.target[mutation.attributeName][prop] = oldValue[prop];
 				}
 			}else{
+				console.log("bla")
 				mutation.target[mutation.attributeName] = oldValue;
 			}
 		}
 		if(mutation.type === "childList"){
 			if(mutation.addedNodes !== null){
-
+				_removeNodes(mutation.target, mutation.addedNodes);
 			}
 			if(mutation.removedNodes !== null){
-				console.log("");
+				_addNodes(mutation.target, mutation.removedNodes);
 			}
 		}
 	};
+
+	var _removeNodes = function(target, nodes){
+		nodes.forEach(function(node){
+			target.removeChild(node);
+		});
+	};
+	var _addNodes = function(target, nodes){
+		nodes.forEach(function(node){
+			target.appendChild(node);
+		});
+	}
 
 	/*
 		Event for operations on events
@@ -149,7 +375,7 @@ var EnCapture = (function(global, doc, undefined){
 			var i, len;
 			elem = elem || doc;
 			for(key in _events){
-				if(_events[key]){
+				if(_events[key].active){
 					elem.addEventListener(key, listener, false);
 				}
 			}	
@@ -172,8 +398,8 @@ var EnCapture = (function(global, doc, undefined){
 						//console.log(actualElement);
 					}
 					var sim = dom.simulateEvent(evtObject.event, actualElement);
-                    if(typeof _events[sim.type] === "function"){
-					   _events[sim.type](sim, evtObject);
+                    if(typeof _events[sim.type].active){
+					   _events[sim.type].action(sim, evtObject);
                     }
 					callback();
 				}, evtObject.timeout * (speed || 1) );
@@ -276,51 +502,11 @@ var EnCapture = (function(global, doc, undefined){
 		this.tab = args.tab;
 		this.playDelay = args.playDelay || 0;
 		
-        this.emulator = args.emulator || null; //new Emulator(this.elem);
+        this.emulator = args.emulator || null;
         
 		console.log(this.name + ' is initialized.');
-		this.attachEventEmulators({
-			'mousemove': function(e){
-				var p = document.querySelector("#pointer");
-				p.style.top = 0 + e.pageY + "px";
-				p.style.left = 0 + e.pageX + "px";
-                //console.log(e);
-			},
-			'mouseup': function(e){
-
-			},
-			'mousedown': function(e){
-
-			},
-			'click': function(e){
-				console.log(e);
-				var src = e.target || o.elem;
-                src.focus();
-                
-			},
-            'keydown': function(e){
-            	console.log(e)
-                var elem = e.target ;             
-                if(e.keyCode === 8){
-                    elem.value = elem.value.substring(0 , elem.value.length - 1);
-                }
-            },
-            'keyup': function(e){
-            	 console.log(e);
-                //console.log("keyup");
-               
-                var elem = e.target;
-                 
-            },
-			'keypress': function(e){
-				var elem = e.target ;
-                elem.value = elem.value + String.fromCharCode(e.keyCode);
-
-			},
-			'scroll': function(e){
-            
-            }
-		});
+		//activate the events to be tracked
+		this.activateEvents(['mousemove', 'mouseup', 'mousedown', 'click', 'keydown', 'keyup', 'keypress', 'scroll']);
 		this.captureHandler = this.startListener(ec.mode.RECORD);
 	};
 	ec.instances = 0;
@@ -337,12 +523,14 @@ var EnCapture = (function(global, doc, undefined){
 		elem = elem || this.elem;
 		handler = handler || function(e){
 			if(that.mode === modeSwitch){
+
 				that.events.add({
 					id: 		that.events.size(), 
 					event: 		e || global.event, 
 					context: 	global,
 	                elem: 		e.target || e.srcElement,
-					timeout: 	timer.get() 
+					timeout: 	timer.get(),
+					custom: _events[e.type].getCustomProperties(e)
 				});
 				timer.stop();
 				timer.reset();
@@ -362,14 +550,10 @@ var EnCapture = (function(global, doc, undefined){
 		dom.removeListeners(elem, handler);
 	};
 
-	ec.prototype.attachEventEmulators = function(renderers){
-		if(renderers){
-			for(eventType in renderers){
-				if(typeof renderers[eventType] === "function" || renderers[eventType]){
-					_events[eventType] = renderers[eventType];
-					console.log("Attached " + eventType + " event renderer");
-				}
-			}
+	ec.prototype.activateEvents = function(events){
+		for(var i = 0, len = events.length; i< len; i++){
+				_events[events[i]].active = true;
+				console.log(events[i] + " event activated.");
 		}
 	};
 
@@ -400,10 +584,11 @@ var EnCapture = (function(global, doc, undefined){
 	ec.prototype.rewind = function(){
 		this.mode = ec.mode.REWIND;
 		this.events.first();
-
+		
 		console.log('rewind');
-		for(var i = _mutations.length - 1; i > 0 ; i--){
-			_revert(_mutations[i]);	
+		for(var i = _mutations.length - 1; i >= 0 ; i--){
+			_revert(_mutations[i]);
+			console.log("revert: " + i);	
 		}
 		//this.execute(this.events.current(), ec.mode.REWIND);
 	};
@@ -413,6 +598,7 @@ var EnCapture = (function(global, doc, undefined){
 	ec.prototype.record = function(){
 		var that = this;
 		//start observing DOM mutation
+		//observer summaries
 		_mutations = [];
 		_observer.observe(this.elem, _observerConfig);
         //cache the current state of the watched element before record
