@@ -81,7 +81,7 @@ var encapturer = {
 		};
 		console.log('create');
 		console.log(capture);
-		this.captureObject = new EnCapture(o);
+		this.captureObject = new Encptr(o);
 	}
 };
 

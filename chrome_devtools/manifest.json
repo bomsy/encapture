@@ -17,7 +17,7 @@
 		{
 			"matches": ["http://*/*", "https://*/*" ],
 			"css": ["css/content_script.css"],
-			"js": ["js/encapture.js", "js/content_script.js"]
+			"js": ["js/encptr.js", "js/content_script.js"]
 		}
 	]
 }
