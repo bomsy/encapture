@@ -1,44 +1,36 @@
-var encaptureDevtoolsBackground = {};
 var protocols = {
-	connect: '0',
-	data: '1'
+	auth: "authentication",
+	data: "data"
 };
-
-
-encaptureDevtoolsBackground.connection = {};
-encaptureDevtoolsBackground.connection.ports = {};
-encaptureDevtoolsBackground.connection.states = {
-	ERROR: '0',
-	CONNECTED : '1',
-	DISCONNECTED: '2'
-};
-
-encaptureDevtoolsBackground.connection.listen = function(){
-	var that = this;
+var inbox = [];
+var ports = {};
+function listen(){
 	chrome.runtime.onConnect.addListener(function(port){
+		register(port.name, port);
+		port = ports[port.name];
 		port.onMessage.addListener(function(payload){
-			if(payload.protocol === protocols.connect){
-				that.register(port.name, port);
-				port.postMessage({ protocol: protocols.connect, state: that.states.CONNECTED });
+			if(payload.protocol == protocols.auth){	
+				port.postMessage({ protocol: protocols.auth, state: "connected" });
 			}
-			if(payload.protocol === protocols.data){
-				if(that.ports[payload.to]){
-					that.ports[payload.to].postMessage(payload);
+			if(payload.protocol == protocols.data){
+				if(ports[payload.to]){
+					ports[payload.to].postMessage(payload);
 				}
 			}
-			
 		});
 	});
 	alert("background port listener started...");
-};
-encaptureDevtoolsBackground.connection.register = function(id, port){
-	if(!this.ports[id]){
-		this.ports[id] = port;
+}
+
+function register(id, port){
+	if(!ports[id]){
+		ports[id] = port;
 	}
-};
+}
 
-encaptureDevtoolsBackground.connection.unregister = function(id){
-	this.ports[id] = null;
-};
+function unregister(id){
+	ports[id] = null;
+}
+listen();
 
-encaptureDevtoolsBackground.connection.listen();
+

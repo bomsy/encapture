@@ -1,65 +1,64 @@
-var encaptureDevtoolsContentscript = {};
-var iWindowCapture = null;
+
 var protocols = {
-	connect: '0',
-	data: '1'
+	auth: 'authentication',
+	data: 'data'
 };
-var actions = {
-	PLAY: 'play',
-	RECORD: 'record',
-	STOP: 'stop',
-	REWIND: 'rewind',
-	PAUSE: 'pause'
-} 
+
 // --------- Connection --------------
-var connection = {};
-connection.name = 'CS_PORT';
-connection.port = null;
-connection.states = {
-	ERROR: '0',
-	CONNECTED : '1',
-	DISCONNECTED: '2'
+var id = 'cs';
+var port = null;
+var states = {
+	error : "An error occured.",
+	connected : "The local port (content script) is connected to the remote port (background page).",
+	disconnected: "The local port (content script) is disconnected from the remote port (background page)."
 };
-connection.state = connection.states.DISCONNECTED;
-connection.create = function(){
-	var port = chrome.runtime.connect({ name: this.name });
+
+state = states.disconnected;
+
+function create(){
+	var port = chrome.runtime.connect({ name: id });
 	return port;
-};
-connection.send = function(payload){
-	if(this.port){
+}
+
+function send(payload){
+	if(port){
 		console.log('sending');
-		this.port.postMessage(payload);
+		port.postMessage(payload);
 	}
-};
-connection.listen = function(){
-	var that = this;
-	if(this.port){
-		this.port.onMessage.addListener(function(response){
-			if(response.protocol == protocols.connect){
-				console.log(response.state);
-				that.state = response.state;
+}
+
+ function listen(){
+	if(port){
+		port.onMessage.addListener(function(response){
+			console.log(response)
+			if(response.protocol == protocols.auth){
+				state = response.state;
+				console.log(states[state]);
 			}
 			if(response.protocol == protocols.data){
-				utils.delegate(response);
+				console.log("cs -  data");
+				console.log(response);
 			}
 		});
 	}
-};
-connection.disconnect = function(){
-	if(this.port){
-		chrome.runtime.Port.disconnect(this.port);
-		this.port = null;
-		this.state = this.states.DISCONNECTED;
-	}
-};
-connection.connect = function(){
-	console.log('connect');
-	this.port = this.create();
-	this.send({ protocol: protocols.connect });
-	this.listen();
-};
+}
 
-connection.connect();
+function disconnect(){
+	if(port){
+		chrome.runtime.Port.disconnect(port);
+		port = null;
+		state = states.disconnected;
+	}
+}
+
+ function connect(){
+	console.log('connect');
+	port = create();
+	send({ protocol: protocols.auth});
+	listen();
+}
+
+connect();
 
 var encapturer = {
 	captureObject: null,
@@ -113,44 +112,3 @@ var utils = {
 		
 	}
 };
-
-
-//Attach render functions that simulate on capture playback
-EnCapture.attachEventRenderers(
-	{
-		'mousemove'	: function(e){
-			var p = document.querySelector("#pointer");
-			p.style.top = 0 + e.pageY + "px";
-			p.style.left = 0 + e.pageX + "px";
-		},
-		'click' : function(e){
-			var src = e.target;
-			src.style.border = "1px solid #f00";			
-		}, 
-		'keypress'	: 	function(e){
-			var src = e.target;
-			src.value = src.value + String.fromCharCode(e.charCode);
-		},
-		'scroll'	: 	function(e){
-
-		},
-	}
-);
-
-
-
-//inject pointer into document
-var p = document.querySelector("#pointer")
-if(!p){
-	p = document.createElement("DIV");
-	p.id = "pointer";
-	p.style.height = "15px";
-	p.style.width = "15px";
-	p.style.borderRadius = "15px";
-	p.style.backgroundColor = "#999";
-	p.style.zIndex = "100";
-	p.style.position = "absolute";
-	p.style.top = "0px";
-	p.style.left = "0px";
-	document.body.appendChild(p);
-}

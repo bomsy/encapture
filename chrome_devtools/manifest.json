@@ -1,5 +1,5 @@
 {
-	"name": "Encapture",
+	"name": "encptr",
 	"version": "1.0",
 	"manifest_version": 2,
 	"minimum_chrome_version": "10.0",
@@ -17,7 +17,7 @@
 		{
 			"matches": ["http://*/*", "https://*/*" ],
 			"css": ["css/content_script.css"],
-			"js": ["js/encptr.js", "js/content_script.js"]
+			"js": ["js/encptr/encptr.js", "js/content_script.js"]
 		}
 	]
 }

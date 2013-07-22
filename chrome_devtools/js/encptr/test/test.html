@@ -1,0 +1,161 @@
+<!doctype html>
+<html>
+	<head>
+		<style type="text/css" >
+			#playarea {
+				width:1000px;
+				height: 150px;
+				border: 1px solid #ccc;
+				margin: 5px;
+                overflow: auto;
+			}
+			#color{
+				width:100px;
+				height: 100px;
+				border: 1px solid #ccc;
+				margin: 5px;
+				color: #fff;
+				font-size: 40px;
+				z-index: 10;
+				top:0px;
+				left:0px;
+				position:absolute;
+				background-color:#0f0;
+			}
+			#pointer{
+				width: 20px;
+				height: 20px;
+				/*border-radius: 50%;
+				background-color: #999;*/
+				z-index: 100;
+				position: absolute;
+				top: 0px;
+				left: 0px;
+			}
+		</style>
+		<script>
+			function change(){
+				var colorPane = document.querySelector("#color");
+				if(colorPane.innerText == "Red"){
+					colorPane.innerText = "Blue";
+					colorPane.style.display = "none";
+					//colorPane.style.backgroundColor = "#00f";
+				}else{
+					colorPane.innerText = "Red";
+					colorPane.width = "100px";
+					//colorPane.style.backgroundColor = "#f00";
+				}
+			}
+			
+		</script>
+	</head>
+	<body>
+		<input type="button" value="record" onClick="record();"/>
+		<input type="button" value="play" onClick="play();">
+		<div id="playarea">
+			<input id="but1" type="button" value="click me" onClick="change();"/>
+			<input type= "text" value="" onKeyDown="showInConsole(this.value);" />
+			<div id="color">Red</div>
+            <p>I guess I made my simplified example a little too simple. ;-)
+
+Yes, you are correct that the problem doesn't occur when returning a single value. But the actual issue is that the problem occurs with "real" queries, ones that return multiple rows containing multiple columns, where some of the fields contain control characters in the database. I believe that the problem is occurring during the JSONification of the result set (i.e., ToJSON() is not considering the possibility of control characters in strings). I can't test my hypothesis because I don't have a C++ development environment set up at the present time.
+
+The following example illustrates the problem in more detail; first, we create and populate a table:
+
+var cmd;
+cmd = new odpnode.OracleCommand("create table foo (key varchar2(20), value varchar2(20))", 
+  commandType.TEXT, con);
+cmd.executeNonQuery(function() {});
+cmd = new odpnode.OracleCommand("insert into foo values ('bar1', 'bar1 value')", 
+  commandType.TEXT, con);
+cmd.executeNonQuery(function() {});
+cmd = new odpnode.OracleCommand("insert into foo values ('bar2', 'bar2 value')", 
+  commandType.TEXT, con);
+cmd.executeNonQuery(function() {});
+cmd = new odpnode.OracleCommand("insert into foo values ('baz1', 'baz1 value')", 
+  commandType.TEXT, con);
+cmd.executeNonQuery(function() {});
+cmd = new odpnode.OracleCommand("insert into foo values ('baz2', 'baz2' || chr(13) || 'value')", 
+  commandType.TEXT, con);
+cmd.executeNonQuery(function() {});
+Next, we perform a query that returns two rows of two columns each:
+
+cmd = new odpnode.OracleCommand("select * from foo where key like 'bar%'", 
+  commandType.TEXT, con);
+cmd.executeReader(function(err, rows) {
+    if (err) {
+      console.log(err);
+    } else {
+      console.log(rows);
+    }
+                
+});</p>
+            <input id="but2" type="button" value="click me" onClick="change();"/>
+		</div>
+		<script type="text/javascript" src="../src/mutation_summary.js" ></script>
+		<script type="text/javascript" src="../src/encptr.js" ></script>
+		<script>
+			var capture = new Encptr({
+				root: document.querySelector('#playarea'),
+				capture: []
+			});
+			//var capture2 = new EnCapture(document.body);
+			function record(){
+				capture.record();
+				console.log("recording...");
+			}
+			function play(){
+				capture.stop();
+				capture.rewind();
+				capture.play();
+				console.log("playing...");
+			}
+			function showInConsole(text){
+				console.log(text);
+			}
+
+			//Attach render functions that simulate on capture playback
+			var pxToNumber = function(px){
+			    var val = px.replace("px", "");
+			    return Number(val);
+			}
+			function loadEvents(document){
+				var focusX = 0;
+				var focusY = 0;
+				var startX = 0;
+				var startY = 0;
+				var focus = false;
+
+				function move(e){
+					e = e || window.event;
+					if(focus){
+						focus.style.left = (startX + (e.clientX - focusX)) + "px";
+                   		focus.style.top = (startY + (e.clientY - focusY)) + "px";
+					}
+				}
+				function up(e){
+					e = e || window.event;
+					focus = null;
+		            focusX = 0;
+		            focusY = 0;
+				}
+				function down(e){
+					e = e || window.event;
+					if(e.target.id === "color"){
+
+						focus = e.target;
+						focusX = e.clientX;
+			            focusY = e.clientY;
+			            startX = pxToNumber(focus.style.left);
+			            startY = pxToNumber(focus.style.top);
+					}
+				}
+				document.body.addEventListener("mousedown", down, false); 
+			    document.body.addEventListener("mouseup", up, false);
+			    document.body.addEventListener("mousemove", move, false);
+			}
+			loadEvents(document);
+			
+		</script>
+	</body>
+</html>
