@@ -4,8 +4,8 @@ var protocols = {
 	data: 'data'
 };
 
-// --------- Connection --------------
-var id = 'cs';
+var newCapture = new Encptr({ root: document.body, capture: [], url: getHostUrl() })
+var id = '100';
 var port = null;
 var states = {
 	error : "An error occured.",
@@ -20,14 +20,14 @@ function create(){
 	return port;
 }
 
-function send(payload){
+function sendToPort(payload){
 	if(port){
 		console.log('sending');
 		port.postMessage(payload);
 	}
 }
 
- function listen(){
+ function listenOnPort(){
 	if(port){
 		port.onMessage.addListener(function(response){
 			console.log(response)
@@ -36,11 +36,19 @@ function send(payload){
 				console.log(states[state]);
 			}
 			if(response.protocol == protocols.data){
-				console.log("cs -  data");
 				console.log(response);
 			}
 		});
 	}
+}
+
+function listen(){
+	chrome.runtime.onMessage.addListener(
+		function(request, sender, sendResponse){
+			console.log(request);
+			sendResponse({message: "got it"});
+		}
+	)
 }
 
 function disconnect(){
@@ -54,7 +62,8 @@ function disconnect(){
  function connect(){
 	console.log('connect');
 	port = create();
-	send({ protocol: protocols.auth});
+	sendToPort({ protocol: protocols.auth});
+	listenOnPort();
 	listen();
 }
 
@@ -66,7 +75,7 @@ var encapturer = {
 		console.log('execute');
 		console.log(this.captureObject);
 		if(action == 'record'){
-			this.create(document.body, [], utils.getHostWindowUrl);
+			this.create(document.body, [], utils.getHostUrl);
 		}
 		if(this.captureObject){
 			this.captureObject[action]();
@@ -84,22 +93,7 @@ var encapturer = {
 	}
 };
 
-
-
-var utils = {
-	delegate: function(payload){
-		var respVal, o = {};
-		switch(typeof payload.value){
-			case 'string':
-				encapturer.execute(payload.value);
-				break;
-			case 'object':
-				encapturer.create(document.body, payload.value, this.getHostWindowUrl());
-				break;
-			default:
-		}
-	},
-	getHostWindowUrl: function(constraint){
+function getHostUrl(constraint){
 		if(constraint === 'protocol'){
 			return window.location.protocol;
 		}else if(constraint === 'host'){
