@@ -13,6 +13,9 @@
 		"http://*/*", 
 		"https://*/*" 
 	],
+	"web_accessible_resources": [
+		"assets/arrow.png"
+	],
 	"content_scripts" : [
 		{
 			"matches": ["http://*/*", "https://*/*" ],

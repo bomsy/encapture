@@ -1,5 +1,5 @@
 var Encptr = (function(global, doc, undefined){
-	var ec = {};
+	var _encptr = {};
 	var speedDifference = 100; //ms
 
 	/* Visual objects */
@@ -386,7 +386,7 @@ var Encptr = (function(global, doc, undefined){
 				}
 			}
 		},
-		executeEvent: function(evtObject, callback, speed, capture, pointer){
+		executeEvent: function(evtObject, callback, delay, capture, pointer){
 			var acutalElement = null;
 			if(evtObject){
 				global.setTimeout(function(){
@@ -400,7 +400,7 @@ var Encptr = (function(global, doc, undefined){
 					   _events[sim.type].action(sim, evtObject, pointer);
                     }
 					callback();
-				}, evtObject.timeout * (speed || 1) );
+				}, evtObject.timeout + delay );
 			}
 		}
 	};
@@ -448,30 +448,20 @@ var Encptr = (function(global, doc, undefined){
 	}
 //----------------------timer------------------------------- 
 	var timer = {
-		time: 0,
-		interval : null,
-		start: function(func, delay){
-			var that = this;
-			this.interval = global.setInterval(function(){
-				that.time += 1;
-			}, 1);
-		},
-		reset: function(){
-			this.time = 0;
+		startTime: null,
+		endTime: null,
+		elapsed: 0,
+		start: function(){
+			this.startTime = new Date().getTime();
 		},
 		stop: function(){
-			global.clearInterval(this.interval);
-		},
-		get: function(){
-			return this.time;
-		},
-		set: function(ms){
-			this.time = ms;
+			this.endTime = new Date().getTime();
+			this.elapsed = this.endTime - this.startTime;
 		}
 	};  
 //------------------ emulator --------------------------------------------
 	var simulator = {
-		createPointer: function(simulateArea){
+		createPointer: function(simulateArea, img){
 			var p = document.createElement("IMG");
 			var style = p.style;
 			function showPointer(){
@@ -485,7 +475,7 @@ var Encptr = (function(global, doc, undefined){
 				p.style.left = 0 + x + "px";
 			}
 			p.id = "encptr-pointer";
-			p.src = "arrow.png"; //to come: load pointer based on os
+			p.src = img; //to come: load pointer based on os
 			style.height = "20px";
 			style.width = "20px";
 			style.zIndex = "10000000";
@@ -501,74 +491,70 @@ var Encptr = (function(global, doc, undefined){
 			};
 		}
 	}
+//-----------------player----------------------------------------------
+function _player(event){
+	setTimeout()
+}
 //-------------- encapture -----------------------------------------
     
-	ec = function(args){
-		ec.instances++;
-		this.name = args.name || 'Capture ' + ec.instances + ' name';
-		this.description = args.description || 'Capture ' + ec.instances + ' description'
+	_encptr = function(args){
+		_encptr.instances++;
+		this.name = args.name || 'Capture ' + _encptr.instances + ' name';
+		this.description = args.description || 'Capture ' + _encptr.instances + ' description'
         
 		this.elem = args.root || doc;
         this.cachedStateBeforeRecord = null;
         
 		this.events = new Collection(args.capture);
 		this.playSpeed = 1;    //normal speed
-		this.mode = ec.mode.STOP;
+		this.currentMode = _encptr.mode.stop;
 		this.url = args.url;
 		this.tab = args.tab;
-		this.playDelay = args.playDelay || 0;
+
+		this.delay = args.delay || 0;
 		
         this.emulator = args.emulator || null;
         
-        this.pointer = simulator.createPointer(this.elem);
+        this.pointer = simulator.createPointer(this.elem, args.pointer);
 
 		console.log(this.name + ' is initialized.');
 		//activate the events to be tracked
-		this.activateEvents(['mousemove', 'mouseup', 'mousedown', 'click', 'keydown', 'keyup', 'keypress', 'scroll']);
-		this.captureHandler = this.startListener(ec.mode.RECORD);
+		this._activateEvents(['mousemove', 'mouseup', 'mousedown', 'click', 'keydown', 'keyup', 'keypress', 'scroll']);
+		//this.handler = this._startListener();
 	};
-	ec.instances = 0;
-	ec.mode = {
-		PLAY: 	0,
-		RECORD: 1,
-		PAUSE: 	2,
-		STOP: 	3,
-		REWIND: 4
-	};
+	_encptr.instances = 0;
 
-	ec.prototype.startListener = function(modeSwitch, elem, handler){
+	_encptr.prototype._startListener = function(elem, handler){
 		var that = this;
 		elem = elem || this.elem;
-		handler = handler || function(e){
-			if(that.mode === modeSwitch){
-
-				that.events.add({
-					id: 		that.events.size(), 
-					event: 		e || global.event, 
-					context: 	global,
-	                elem: 		e.target || e.srcElement,
-					timeout: 	timer.get(),
-					custom: _events[e.type].getCustomProperties(e)
-				});
-				timer.stop();
-				timer.reset();
-				timer.start();
-				that.events.moveTo(that.events.size() - 1);
-				console.log(that.events.current());
-			}
+		handler = handler || 
+		function(e){
+			timer.stop();
+			that.events.add({
+				id: 		that.events.size(), 
+				event: 		e || global.event, 
+				context: 	global,
+                elem: 		e.target || e.srcElement,
+				timeout: 	timer.elapsed,
+				custom: _events[e.type].getCustomProperties(e)
+			});
+			timer.start();
+			that.events.moveTo(that.events.size() - 1);
+			console.log(that.events.current());
 		};
+		timer.start();
 		dom.addListeners(elem, handler);
 		console.log("Event listener started...");
 		return handler;
 	};
 
-	ec.prototype.stopListener = function(elem, handler){
+	_encptr.prototype._stopListener = function(elem, handler){
 		elem = elem || this.elem;
-		handler = handler || this.captureHandler;
+		handler = handler || this.handler;
 		dom.removeListeners(elem, handler);
 	};
 
-	ec.prototype.activateEvents = function(events){
+	_encptr.prototype._activateEvents = function(events){
 		for(var i = 0, len = events.length; i< len; i++){
 				_events[events[i]].active = true;
 				console.log(events[i] + " event activated.");
@@ -576,32 +562,26 @@ var Encptr = (function(global, doc, undefined){
 	};
 
 	//------------control functions-----------
-	ec.prototype.play = function(){
-		var that = this;
+	_encptr.prototype.play = function(){
+		var nextEvent;
         //reset to the state before record
         this.pointer.show();
         //start play
         //stop observing DOM mutations
         _observer.disconnect();
-		this.mode = ec.mode.PLAY;
 		console.log('playing');
-		global.setTimeout(function(){
-			that._execute(that.events.current(), ec.mode.PLAY);
+		nextEvent = this.events.next();
+		that._runEvent(that.events.current(), _encptr.mode.PLAY, this.delay);
 			//that.pointer.hide();
-		}, this.playDelay);	
 	};
-	ec.prototype.stop = function(){
-		this.mode = ec.mode.STOP;
+	_encptr.prototype.stop = function(){
+		this.mode = _encptr.mode.STOP;
 		this.events.last();
-		//if(this.captureListener){
-			//dom.removeListeners(this.elem, this.captureListener);
-			//this.stopListener(this.captureHandler);
-			console.log('stopped');
-		//}
-		
+		this._stopListener();
+		console.log('stopped');
 	};
-	ec.prototype.rewind = function(){
-		this.mode = ec.mode.REWIND;
+	_encptr.prototype.rewind = function(){
+		this.mode = _encptr.mode.REWIND;
 		this.events.first();
 		
 		console.log('rewind');
@@ -609,12 +589,12 @@ var Encptr = (function(global, doc, undefined){
 			_revert(_mutations[i]);
 			console.log("revert: " + i);	
 		}
-		//this.execute(this.events.current(), ec.mode.REWIND);
+		//this.execute(this.events.current(), _encptr.mode.REWIND);
 	};
-	ec.prototype.pause = function(){
-		this.mode = ec.mode.PAUSE;
+	_encptr.prototype.pause = function(){
+		this.mode = _encptr.mode.PAUSE;
 	};
-	ec.prototype.record = function(){
+	_encptr.prototype.record = function(){
 		var that = this;
 		//start observing DOM mutation
 		//observer summaries
@@ -622,38 +602,36 @@ var Encptr = (function(global, doc, undefined){
 		_observer.observe(this.elem, _observerConfig);
         //cache the current state of the watched element before record
         this.cachedStateBeforeRecord = this.elem.innerHTML;
-        timer.start();
-		this.mode = ec.mode.RECORD;
-		//dom.addListeners(this.elem, listener);
-		//this.captureHandler = this.startListener(ec.mode.RECORD);
+		this.mode = _encptr.mode.RECORD;
+		this.handler = this._startListener();
 
 	};
 	//----------------------------------------
-	ec.prototype._execute = function(evt, currentExecutionMode){
+	_encptr.prototype._runEvent = function(evt, execMode, delay){
 		var that = this;
-		if(currentExecutionMode === this.mode){
+		if(execMode === this.mode){
 			dom.executeEvent(evt, function(){
 				var nxtEvt = undefined;
-				if(currentExecutionMode === ec.mode.PLAY){
+				if(execMode === _encptr.mode.play){
 					nxtEvt = that.events.next();
 				}
-				if(currentExecutionMode === ec.mode.REWIND){
+				if(execMode === _encptr.mode.rewind){
 					nxtEvt = that.events.previous();
 				}
-				that._execute(nxtEvt, currentExecutionMode);
-			}, undefined, this, this.pointer);
+				that._runEvent(nxtEvt, execMode, delay);
+			}, delay, this, this.pointer);
 		}
 	};
 
-	ec.prototype.increasePlaySpeed = function(){
+	_encptr.prototype.increasePlaySpeed = function(){
 		this.playSpeed = this.playSpeed / 2; 
 	};
 
-	ec.prototype.decreasePlaySpeed = function(){
+	_encptr.prototype.decreasePlaySpeed = function(){
 		this.playSpeed = this.playSpeed * 2;
 	};
 
-	ec.prototype.viewCapture = function(){
+	_encptr.prototype.viewCapture = function(){
 		return {
 			name : this.name,
 			description : this.description,
@@ -661,5 +639,5 @@ var Encptr = (function(global, doc, undefined){
 		}
 	};
 
-	return ec;
+	return _encptr;
 }(window, document, undefined));

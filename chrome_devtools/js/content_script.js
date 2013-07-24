@@ -4,7 +4,13 @@ var protocols = {
 	data: 'data'
 };
 
-var newCapture = new Encptr({ root: document.body, capture: [], url: getHostUrl() })
+var newCapture = new Encptr({ 
+	root: document.body, 
+	capture: [], 
+	url: getHostUrl(),
+	pointer: chrome.runtime.getURL("assets/arrow.png")  
+});
+
 var id = '100';
 var port = null;
 var states = {
@@ -46,6 +52,7 @@ function listen(){
 	chrome.runtime.onMessage.addListener(
 		function(request, sender, sendResponse){
 			console.log(request);
+			execute(request);
 			sendResponse({message: "got it"});
 		}
 	)
@@ -69,40 +76,18 @@ function disconnect(){
 
 connect();
 
-var encapturer = {
-	captureObject: null,
-	execute: function(action){
-		console.log('execute');
-		console.log(this.captureObject);
-		if(action == 'record'){
-			this.create(document.body, [], utils.getHostUrl);
-		}
-		if(this.captureObject){
-			this.captureObject[action]();
-		}
-	},
-	create: function(rootElement, capture, url){
-		var o = {
-			url: url,
-			root: rootElement,
-			capture: capture
-		};
-		console.log('create');
-		console.log(capture);
-		this.captureObject = new Encptr(o);
-	}
-};
+function execute(request){
+	newCapture[request.data]();
+}
 
 function getHostUrl(constraint){
-		if(constraint === 'protocol'){
-			return window.location.protocol;
-		}else if(constraint === 'host'){
-			return window.location.host;
-		}else if(constraint === 'path'){
-			return window.location.pathname;
-		} else {
-			return window.location.protocol + "//" + window.location.host + "/" + window.location.pathname;
-		}
-		
+	if(constraint === 'protocol'){
+		return window.location.protocol;
+	}else if(constraint === 'host'){
+		return window.location.host;
+	}else if(constraint === 'path'){
+		return window.location.pathname;
+	} else {
+		return window.location.protocol + "//" + window.location.host + "/" + window.location.pathname;
 	}
-};
+}
