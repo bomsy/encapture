@@ -222,6 +222,7 @@ var Encptr = (function(global, doc, undefined){
 		},
 		'scroll'	: 	{
 			action: function(e, o){
+				console.log(o)
 				e.target.scrollTop = o.custom.scrollTop;
 				e.target.scrollLeft = o.custom.scrollLeft;
 			},
@@ -396,7 +397,7 @@ var Encptr = (function(global, doc, undefined){
 						//console.log(actualElement);
 					}
 					var sim = dom.simulateEvent(evtObject.event, actualElement);
-                    if(typeof _events[sim.type].active){
+                    if(_events[sim.type].active){
 					   _events[sim.type].action(sim, evtObject, pointer);
                     }
 					callback();
@@ -424,7 +425,7 @@ var Encptr = (function(global, doc, undefined){
 	};
 	Collection.prototype.previous = function(){
 		this.currentIndex--;
-		return this.collection[this.currentIndex];
+		return this.collection[this.currentIndex];	
 	};
 	Collection.prototype.first = function(){
 		this.currentIndex = 0;
@@ -507,7 +508,7 @@ function _player(event){
         
 		this.events = new Collection(args.capture);
 		this.playSpeed = 1;    //normal speed
-		this.currentMode = _encptr.mode.stop;
+		this.currentMode = _encptr.modes.stop;
 		this.url = args.url;
 		this.tab = args.tab;
 
@@ -520,9 +521,16 @@ function _player(event){
 		console.log(this.name + ' is initialized.');
 		//activate the events to be tracked
 		this._activateEvents(['mousemove', 'mouseup', 'mousedown', 'click', 'keydown', 'keyup', 'keypress', 'scroll']);
-		//this.handler = this._startListener();
+		this.handler = null;
 	};
 	_encptr.instances = 0;
+	_encptr.modes = {
+		record: "record",
+		play: "play",
+		rewind: "rewind",
+		pause: "pause",
+		stop: "stop"
+	}
 
 	_encptr.prototype._startListener = function(elem, handler){
 		var that = this;
@@ -551,7 +559,9 @@ function _player(event){
 	_encptr.prototype._stopListener = function(elem, handler){
 		elem = elem || this.elem;
 		handler = handler || this.handler;
-		dom.removeListeners(elem, handler);
+		if(handler !== null){
+			dom.removeListeners(elem, handler);
+		}
 	};
 
 	_encptr.prototype._activateEvents = function(events){
@@ -563,72 +573,67 @@ function _player(event){
 
 	//------------control functions-----------
 	_encptr.prototype.play = function(){
-		var nextEvent;
-        //reset to the state before record
-        this.pointer.show();
-        //start play
-        //stop observing DOM mutations
-        _observer.disconnect();
-		console.log('playing');
-		nextEvent = this.events.next();
-		that._runEvent(that.events.current(), _encptr.mode.PLAY, this.delay);
-			//that.pointer.hide();
+		this.pointer.show();
+		this.currentMode = _encptr.modes.play;
+		this._executeEvent(this.events.current(), this.delay);
+		console.log(this.currentMode);
 	};
 	_encptr.prototype.stop = function(){
-		this.mode = _encptr.mode.STOP;
-		this.events.last();
+		this.currentMode = _encptr.modes.stop;
 		this._stopListener();
-		console.log('stopped');
+		console.log(this.currentMode);
 	};
 	_encptr.prototype.rewind = function(){
-		this.mode = _encptr.mode.REWIND;
+		this.currentMode = _encptr.modes.rewind;
 		this.events.first();
-		
-		console.log('rewind');
-		for(var i = _mutations.length - 1; i >= 0 ; i--){
-			_revert(_mutations[i]);
-			console.log("revert: " + i);	
-		}
-		//this.execute(this.events.current(), _encptr.mode.REWIND);
+		console.log(this.currentMode);
 	};
 	_encptr.prototype.pause = function(){
-		this.mode = _encptr.mode.PAUSE;
+		this.currentMode = _encptr.modes.pause;
+		console.log(this.currentMode);
 	};
 	_encptr.prototype.record = function(){
-		var that = this;
-		//start observing DOM mutation
-		//observer summaries
-		_mutations = [];
-		_observer.observe(this.elem, _observerConfig);
-        //cache the current state of the watched element before record
-        this.cachedStateBeforeRecord = this.elem.innerHTML;
-		this.mode = _encptr.mode.RECORD;
+		this.currentMode = _encptr.modes.record;
 		this.handler = this._startListener();
-
+		console.log(this.currentMode);
 	};
+	
+	_encptr.prototype._getNextEvent = function(){
+		var modes = _encptr.modes;
+		if(this.currentMode === modes.play){
+			return this.events.next();
+		}
+		if(this.currentMode === modes.rewind){
+			return this.events.previous()
+		}
+		if(this.currentMode === modes.stop){
+			this.events.last();
+			return undefined;
+		}
+		if(this.currentMode === modes.pause){
+			//set to the next event but send no event for running
+			this.events.next();
+			return undefined;
+		}
+	}
 	//----------------------------------------
-	_encptr.prototype._runEvent = function(evt, execMode, delay){
+	_encptr.prototype._executeEvent = function(evt, delay){
 		var that = this;
-		if(execMode === this.mode){
-			dom.executeEvent(evt, function(){
-				var nxtEvt = undefined;
-				if(execMode === _encptr.mode.play){
-					nxtEvt = that.events.next();
-				}
-				if(execMode === _encptr.mode.rewind){
-					nxtEvt = that.events.previous();
-				}
-				that._runEvent(nxtEvt, execMode, delay);
-			}, delay, this, this.pointer);
+		dom.executeEvent(evt, function(){
+			var n = that._getNextEvent();
+			console.log(n);
+			that._executeEvent(n, delay);
+		}, delay, this, this.pointer);
+	};
+
+	_encptr.prototype.increaseSpeed = function(){
+		if(this.delay > 0){
+			this.delay--; 
 		}
 	};
 
-	_encptr.prototype.increasePlaySpeed = function(){
-		this.playSpeed = this.playSpeed / 2; 
-	};
-
-	_encptr.prototype.decreasePlaySpeed = function(){
-		this.playSpeed = this.playSpeed * 2;
+	_encptr.prototype.decreaseSpeed = function(){
+		this.delay++;
 	};
 
 	_encptr.prototype.viewCapture = function(){
