@@ -222,15 +222,18 @@ var Encptr = (function(global, doc, undefined){
 		},
 		'scroll'	: 	{
 			action: function(e, o){
-				console.log(o)
-				e.target.scrollTop = o.custom.scrollTop;
-				e.target.scrollLeft = o.custom.scrollLeft;
+				console.log(o.custom.scrollTop, o.custom.scrollLeft);
+
+				e.target.body.scrollTop = o.custom.scrollTop;
+				e.target.body.scrollLeft = o.custom.scrollLeft;
 			},
 			getCustomProperties: function(e){
 				//gets specific properties for the event
+				var elem = e.srcElement || e.target;
+				console.log(e);
 				return {
-					scrollTop: e.target.scrollTop,
-					scrollLeft: e.target.scrollLeft
+					scrollTop: elem.body.scrollTop,
+					scrollLeft: elem.body.scrollLeft
 				}
 			},
 			active: false
@@ -363,8 +366,10 @@ var Encptr = (function(global, doc, undefined){
 			}
 		},
 		simulateEvent: function(event, target){
-			//var newEvent = this.createEvent(event);
             var simEvent = event;
+            if(simEvent.type === "scroll" && (target === document.body || target === document.documentElement || target === window  || elem === document)){
+            	target = document;
+            }
             event.target = target;
             event.srcElement = target;
 			this.dispatchEvent(target, simEvent);
@@ -375,13 +380,21 @@ var Encptr = (function(global, doc, undefined){
 			elem = elem || doc;
 			for(key in _events){
 				if(_events[key].active){
+					if(key == "scroll" && (elem === document.body || elem === document.documentElement || elem === window || elem === document)){
+						elem = document;
+					}
 					elem.addEventListener(key, listener, false);
+					console.log(elem);
+					console.log(key + " listening");
 				}
 			}	
 		},
 		removeListeners: function(elem, listener){
 			elem = elem || doc;
 			for(key in _events){
+				if(key == "scroll" && (elem === document.body || elem === document.documentElement || elem === window || elem === document)){
+					elem = document;
+				}
 				if(_events[key]){
 					elem.removeEventListener(key, listener, false);
 				}
@@ -391,11 +404,7 @@ var Encptr = (function(global, doc, undefined){
 			var acutalElement = null;
 			if(evtObject){
 				global.setTimeout(function(){
-					actualElement = dom.findTwinNode(evtObject.elem, capture.elem);
-					if(actualElement){
-						//console.log("actual element");
-						//console.log(actualElement);
-					}
+					actualElement = capture.elem
 					var sim = dom.simulateEvent(evtObject.event, actualElement);
                     if(_events[sim.type].active){
 					   _events[sim.type].action(sim, evtObject, pointer);
@@ -446,6 +455,9 @@ var Encptr = (function(global, doc, undefined){
 	};
 	Collection.prototype.size = function(){
 		return this.collection.length;
+	}
+	Collection.prototype.empty = function(){
+		this.collection = [];
 	}
 //----------------------timer------------------------------- 
 	var timer = {
@@ -561,6 +573,7 @@ function _player(event){
 		handler = handler || this.handler;
 		if(handler !== null){
 			dom.removeListeners(elem, handler);
+
 		}
 	};
 
@@ -594,6 +607,7 @@ function _player(event){
 	};
 	_encptr.prototype.record = function(){
 		this.currentMode = _encptr.modes.record;
+		this.events.empty();
 		this.handler = this._startListener();
 		console.log(this.currentMode);
 	};
