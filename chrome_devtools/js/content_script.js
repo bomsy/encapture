@@ -8,7 +8,10 @@ var newCapture = new Encptr({
 	root: document.body, 
 	capture: [], 
 	url: getHostUrl(),
-	pointer: chrome.runtime.getURL("assets/arrow.png")  
+	cursors: {
+		default: chrome.runtime.getURL("assets/arrow.png"),
+		pointer: chrome.runtime.getURL("assets/Cursor_Hand.png")
+	}
 });
 
 var id = '100';

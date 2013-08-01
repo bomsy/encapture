@@ -1,7 +1,7 @@
 var Encptr = (function(global, doc, undefined){
 	var _encptr = {};
 	var speedDifference = 100; //ms
-
+	var pointer = null;
 	/* Visual objects */
 	var _events = {
 		//actions occur during play back state
@@ -111,8 +111,14 @@ var Encptr = (function(global, doc, undefined){
 		}, 
 		'mousemove' : 	{
 			action: function(e, o, pointer){
-				e.target.focus();
+				o.elem.focus();
 				pointer.move(e.pageX, e.pageY);
+				console.log(e.target.tagName);
+				if(o.elem.tagName == "A"){
+					pointer.set("hand");
+				}else{
+					pointer.set("default");
+				}
 			},
 			getCustomProperties: function(e){
 				//gets specific properties for the event
@@ -132,7 +138,9 @@ var Encptr = (function(global, doc, undefined){
 		}, 
 		'mouseover' : 	{
 			action: function(e){
-
+				if(e.target.tagName === "a"){
+					alert(e.target);
+				}
 			},
 			getCustomProperties: function(e){
 				//gets specific properties for the event
@@ -251,6 +259,8 @@ var Encptr = (function(global, doc, undefined){
 			active: false
 		}
 	};
+
+
 	/* Mutation Observers */
 	var _mutations = [];
 
@@ -370,8 +380,8 @@ var Encptr = (function(global, doc, undefined){
             if(simEvent.type === "scroll" && (target === document.body || target === document.documentElement || target === window  || elem === document)){
             	target = document;
             }
-            event.target = target;
-            event.srcElement = target;
+            simEvent.target = target;
+            simEvent.srcElement = target;
 			this.dispatchEvent(target, simEvent);
 			return simEvent;
 		},
@@ -474,9 +484,10 @@ var Encptr = (function(global, doc, undefined){
 	};  
 //------------------ emulator --------------------------------------------
 	var simulator = {
-		createPointer: function(simulateArea, img){
+		createPointer: function(simulateArea, images){
 			var p = document.createElement("IMG");
 			var style = p.style;
+			var imgList = images;
 			function showPointer(){
 				p.style.display = "block";
 			}
@@ -487,17 +498,22 @@ var Encptr = (function(global, doc, undefined){
 				p.style.top = 0 + y + "px";
 				p.style.left = 0 + x + "px";
 			}
+			function setPointer(type){
+				p.src = imgList[type];
+			}
 			p.id = "encptr-pointer";
-			p.src = img; //to come: load pointer based on os
-			style.height = "20px";
-			style.width = "20px";
+			style.height = "24px";
+			style.width = "19px";
 			style.zIndex = "10000000";
 			style.position = "absolute";
 			style.top = "0px";
 			style.left = "0px";
+
+			setPointer("default");
 			simulateArea.appendChild(p);
 			hidePointer();
 			return {
+				set: setPointer,
 				move: movePointer,
 				show: showPointer,
 				hide: hidePointer
@@ -528,8 +544,8 @@ function _player(event){
 		
         this.emulator = args.emulator || null;
         
-        this.pointer = simulator.createPointer(this.elem, args.pointer);
-
+        this.pointer = simulator.createPointer(this.elem, args.pointers);
+        pointer = this.pointer;
 		console.log(this.name + ' is initialized.');
 		//activate the events to be tracked
 		this._activateEvents(['mousemove', 'mouseup', 'mousedown', 'click', 'keydown', 'keyup', 'keypress', 'scroll']);
@@ -633,11 +649,13 @@ function _player(event){
 	//----------------------------------------
 	_encptr.prototype._executeEvent = function(evt, delay){
 		var that = this;
-		dom.executeEvent(evt, function(){
-			var n = that._getNextEvent();
-			console.log(n);
-			that._executeEvent(n, delay);
-		}, delay, this, this.pointer);
+		if(evt){
+			dom.executeEvent(evt, function(){
+				var n = that._getNextEvent();
+				console.log(n);
+				that._executeEvent(n, delay);
+			}, delay, evt.elem, this.pointer);
+		}
 	};
 
 	_encptr.prototype.increaseSpeed = function(){

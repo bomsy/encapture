@@ -14,7 +14,8 @@
 		"https://*/*" 
 	],
 	"web_accessible_resources": [
-		"assets/arrow.png"
+		"assets/arrow.png",
+		"assets/Cursor_Hand.png"
 	],
 	"content_scripts" : [
 		{
